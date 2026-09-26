@@ -21,8 +21,12 @@ export default function AdminLoginPage() {
 
     try {
       // 1. Check campus master organizer passkey first
-      const masterCode = process.env.NEXT_PUBLIC_ORGANIZER_ACCESS_CODE || "GDGOC2026";
-      if (passcode.trim().toUpperCase() === masterCode || password === masterCode) {
+      const masterCode = process.env.NEXT_PUBLIC_ORGANIZER_ACCESS_CODE || "GDGPixelpalooza123";
+      if (
+        passcode.trim() === masterCode || 
+        passcode.trim().toLowerCase() === masterCode.toLowerCase() || 
+        password === masterCode
+      ) {
         localStorage.setItem("gdgoc_admin_session", "authenticated");
         router.push("/admin");
         return;
@@ -48,7 +52,7 @@ export default function AdminLoginPage() {
       }
 
       // 3. Fallback check for admin credential
-      if (email === "admin@gdgoc.dev" && password === "GDGOC2026") {
+      if (email === "admin@gdgoc.dev" && password === "GDGPixelpalooza123") {
         localStorage.setItem("gdgoc_admin_session", "authenticated");
         router.push("/admin");
         return;
@@ -108,11 +112,11 @@ export default function AdminLoginPage() {
               </label>
               <div className="relative">
                 <input
-                  type="text"
-                  placeholder="Enter Passcode (e.g. GDGOC2026)"
+                  type="password"
+                  placeholder="Enter Master Passcode"
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  className="w-full bg-obsidian-950 border border-slate-700 text-white px-3 py-2.5 text-sm focus:outline-none focus:border-festival-pink uppercase font-bold"
+                  className="w-full bg-obsidian-950 border border-slate-700 text-white px-3 py-2.5 text-sm focus:outline-none focus:border-festival-pink font-mono"
                 />
                 <Key className="w-4 h-4 text-slate-500 absolute right-3 top-3" />
               </div>
