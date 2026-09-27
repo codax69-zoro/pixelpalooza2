@@ -47,7 +47,7 @@ import { useArena } from "@/lib/store/arena-context";
 import { Game, Team, ScoreEventType } from "@/types/arena";
 import { soundFx } from "@/lib/audio/sound-fx";
 import { PixelBunting } from "@/components/PixelBunting";
-import { DEMO_SAMPLE_TEAMS, DEMO_SAMPLE_SCORES } from "@/lib/constants/seed-teams";
+import { FestoonLights } from "@/components/FestoonLights";
 import confetti from "canvas-confetti";
 
 export default function AdminFestivalControlBooth() {
@@ -287,49 +287,47 @@ export default function AdminFestivalControlBooth() {
   };
 
   return (
-    <div className="min-h-screen bg-obsidian-950 text-slate-100 flex flex-col lg:flex-row font-mono text-xs selection:bg-festival-pink selection:text-white">
+    <div className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col lg:flex-row font-sans text-xs selection:bg-fest-yellow selection:text-black">
       {/* =================================================================== */}
-      {/* LEFT NAVIGATION SIDEBAR (Matching media_1790449798804.png) */}
+      {/* LEFT NAVIGATION SIDEBAR (Matching Stitch Festival Theme) */}
       {/* =================================================================== */}
-      <aside className="w-full lg:w-64 bg-obsidian-900 border-r border-voxel-border flex flex-col justify-between shrink-0 p-4 lg:min-h-screen z-20">
+      <aside className="w-full lg:w-64 bg-black/90 border-r-2 border-white/20 flex flex-col justify-between shrink-0 p-4 lg:min-h-screen z-20">
         <div>
-          {/* Top Brand with Audio Waveform Logo */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-festival-pink to-purple-600 border border-festival-pink/60 flex items-center justify-center shadow-voxel-sm">
-              <span className="text-white font-mono text-base font-black tracking-tighter">
-                |||
-              </span>
+          {/* Top Brand with P25 Badge */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 p-0.5 border border-white/30 flex items-center justify-center">
+              <span className="font-anton text-xl text-fest-yellow">P25</span>
             </div>
             <div>
-              <div className="font-black text-white text-sm tracking-wide flex items-center gap-1">
+              <div className="font-anton text-xl tracking-wider text-white uppercase flex items-center gap-1 leading-none">
                 <span>PIXELPALOOZA</span>
-                <span className="text-festival-pink text-xs">🎵</span>
+                <span className="text-fest-coral text-xs">’25</span>
               </div>
-              <div className="text-[10px] text-festival-cyan font-bold tracking-wider uppercase">
+              <div className="text-[9px] font-grotesk font-black text-fest-cyan tracking-widest uppercase mt-0.5">
                 CONTROL BOOTH
               </div>
             </div>
           </div>
 
           {/* Organizer Access Level Badge */}
-          <div className="bg-obsidian-950 border border-slate-800 px-3 py-1.5 flex items-center justify-between mb-6 shadow-voxel-sm">
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-festival-emerald" />
+          <div className="bg-white/10 border-2 border-white/20 rounded-xl px-3 py-2 flex items-center justify-between mb-6 shadow-[2px_2px_0px_#000]">
+            <span className="font-grotesk text-[10px] text-slate-300 font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
               <span>ORGANIZER DESK</span>
             </span>
-            <span className="text-[10px] text-realm-gold font-bold bg-amber-950/60 border border-amber-800/80 px-1.5 py-0.2">
-              LVL 9 👑
+            <span className="font-grotesk text-[10px] font-black text-black bg-fest-yellow px-2 py-0.5 rounded shadow-[1px_1px_0px_#000]">
+              VERIFIED ⚡
             </span>
           </div>
 
           {/* Navigation Links */}
-          <nav className="space-y-1.5">
+          <nav className="space-y-2">
             <button
               onClick={() => setActiveSidebarTab("control-booth")}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-none font-bold text-xs uppercase tracking-wider transition-all shadow-voxel-sm ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-grotesk font-black text-xs uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000] ${
                 activeSidebarTab === "control-booth"
-                  ? "bg-festival-pink text-white border-2 border-festival-pink shadow-festival-pink font-black"
-                  : "bg-obsidian-950 text-slate-400 hover:text-white hover:bg-obsidian-850 border border-slate-800"
+                  ? "bg-fest-yellow text-black border-2 border-black"
+                  : "bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 border border-white/10"
               }`}
             >
               <Tent className="w-4 h-4" />
@@ -338,7 +336,7 @@ export default function AdminFestivalControlBooth() {
 
             <Link
               href="/leaderboard"
-              className="w-full flex items-center gap-3 px-3 py-2.5 bg-obsidian-950 text-slate-400 hover:text-white hover:bg-obsidian-850 border border-slate-800 font-bold text-xs uppercase tracking-wider transition-all shadow-voxel-sm"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 font-grotesk font-bold text-xs uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000]"
             >
               <BarChart3 className="w-4 h-4" />
               <span>SCORE MATRIX</span>
@@ -346,10 +344,10 @@ export default function AdminFestivalControlBooth() {
 
             <Link
               href="/games"
-              className="w-full flex items-center gap-3 px-3 py-2.5 bg-obsidian-950 text-slate-400 hover:text-white hover:bg-obsidian-850 border border-slate-800 font-bold text-xs uppercase tracking-wider transition-all shadow-voxel-sm"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 font-grotesk font-bold text-xs uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000]"
             >
               <Gamepad2 className="w-4 h-4" />
-              <span>MANAGE GAMES</span>
+              <span>7 ATTRACTIONS</span>
             </Link>
 
             <button
@@ -358,7 +356,7 @@ export default function AdminFestivalControlBooth() {
                 const reg = document.getElementById("squad-registry-panel");
                 if (reg) reg.scrollIntoView({ behavior: "smooth" });
               }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 bg-obsidian-950 text-slate-400 hover:text-white hover:bg-obsidian-850 border border-slate-800 font-bold text-xs uppercase tracking-wider transition-all shadow-voxel-sm text-left"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 font-grotesk font-bold text-xs uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000] text-left"
             >
               <Users className="w-4 h-4" />
               <span>TEAM REGISTRY</span>
@@ -367,10 +365,10 @@ export default function AdminFestivalControlBooth() {
             <Link
               href="/display"
               target="_blank"
-              className="w-full flex items-center gap-3 px-3 py-2.5 bg-obsidian-950 text-slate-400 hover:text-white hover:bg-obsidian-850 border border-slate-800 font-bold text-xs uppercase tracking-wider transition-all shadow-voxel-sm"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 text-slate-300 hover:text-white hover:bg-white/10 border border-white/10 font-grotesk font-bold text-xs uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000]"
             >
               <Mic className="w-4 h-4" />
-              <span>STAGE HUD OUTPUT</span>
+              <span>STAGE HUD OUTPUT ↗</span>
             </Link>
           </nav>
         </div>
@@ -402,50 +400,50 @@ export default function AdminFestivalControlBooth() {
       {/* =================================================================== */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header Bar */}
-        <header className="bg-obsidian-900 border-b border-voxel-border px-4 lg:px-6 py-2.5 flex items-center justify-between gap-3 sticky top-0 z-30 shadow-voxel-sm">
+        <header className="bg-black/90 backdrop-blur-md border-b-2 border-white/20 px-4 lg:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <Link
               href="/leaderboard"
-              className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors text-xs font-semibold"
+              className="flex items-center gap-1.5 text-slate-300 hover:text-fest-yellow transition-colors text-xs font-grotesk font-bold uppercase tracking-wider"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">BACK TO PUBLIC ARENA</span>
+              <span className="hidden sm:inline">RETURN TO PUBLIC ARENA</span>
             </Link>
 
             {/* GDG ON CAMPUS · NMIMS NAVI MUMBAI Badge */}
-            <div className="hidden md:flex items-center gap-1.5 bg-obsidian-950 border border-festival-cyan/40 text-festival-cyan px-2.5 py-1 text-[11px] font-bold tracking-wider">
-              <span>GDG ON CAMPUS · NMIMS NAVI MUMBAI</span>
+            <div className="hidden md:flex items-center gap-1.5 bg-white/10 border border-white/20 text-fest-cyan px-2.5 py-1 rounded-lg text-[10px] font-grotesk font-black tracking-wider uppercase">
+              <span>GDG ON CAMPUS • NMIMS NAVI MUMBAI</span>
             </div>
           </div>
 
           <div className="flex items-center gap-2.5">
             {/* Festival Live Pill */}
-            <div className="flex items-center gap-1.5 bg-obsidian-950 border border-realm-emerald/50 px-2.5 py-1 text-[11px]">
-              <span className="w-2 h-2 rounded-full bg-realm-emerald animate-pulse" />
-              <span className="text-realm-emerald font-bold">FESTIVAL LIVE</span>
+            <div className="flex items-center gap-1.5 bg-black/60 border border-emerald-500/50 px-2.5 py-1 rounded-lg text-[11px] font-grotesk uppercase font-black">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span className="text-emerald-400">FESTIVAL LIVE</span>
             </div>
 
             {/* Squads count */}
-            <div className="hidden sm:flex items-center gap-1 bg-obsidian-950 border border-slate-800 px-2 py-1 text-[11px] text-slate-300">
-              <Users className="w-3 h-3 text-slate-400" />
+            <div className="hidden sm:flex items-center gap-1 bg-white/10 border border-white/20 px-2.5 py-1 rounded-lg text-[11px] font-grotesk uppercase font-bold text-slate-200">
+              <Users className="w-3.5 h-3.5 text-fest-yellow" />
               <span>{teams.length} SQUADS</span>
             </div>
 
-            {/* Stage Projector Button (Amber with tent icon) */}
+            {/* Stage Projector Button */}
             <Link
               href="/display"
               target="_blank"
-              className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-festival-orange text-black font-black px-3 py-1 text-xs shadow-voxel-sm hover:brightness-110 transition-all active:translate-y-0.5"
+              className="flex items-center gap-1.5 bg-fest-yellow text-black font-anton px-3.5 py-1.5 text-xs uppercase tracking-wider rounded-lg border-2 border-black retro-shadow-black hover:bg-white transition-all active:translate-y-0.5"
             >
               <Tent className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="hidden sm:inline">STAGE PROJECTOR ↗</span>
+              <span className="hidden sm:inline">STAGE HUD ↗</span>
             </Link>
 
             {/* Log Out */}
             <button
               onClick={handleLogout}
-              className="p-1.5 bg-obsidian-950 hover:bg-red-950/40 border border-slate-800 hover:border-red-700 text-slate-400 hover:text-red-300 transition-colors"
-              title="Log Out"
+              className="p-2 rounded-lg bg-red-950/60 hover:bg-red-800 border border-red-500/50 text-red-200 hover:text-white transition-colors"
+              title="Log Out of Control Booth"
             >
               <LogOut className="w-3.5 h-3.5" />
             </button>
@@ -455,63 +453,54 @@ export default function AdminFestivalControlBooth() {
         {/* Dashboard Workspace */}
         <main className="flex-1 p-4 lg:p-6 space-y-6 max-w-7xl w-full mx-auto">
           {/* =================================================================== */}
-          {/* TOP SESSION CARD WITH PIXEL BUNTING (media_1790449798804.png) */}
+          {/* TOP SESSION CARD WITH PIXEL BUNTING */}
           {/* =================================================================== */}
-          <div className="voxel-card border-2 border-voxel-border bg-obsidian-900 shadow-voxel overflow-hidden relative">
+          <div className="bg-black/90 border-4 border-black rounded-3xl retro-shadow-black overflow-hidden relative">
+            <FestoonLights />
             <PixelBunting />
 
-            <div className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 {/* Tag row */}
-                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                  <span className="bg-festival-pink text-white font-black text-[10px] px-2 py-0.5 tracking-wider uppercase shadow-voxel-sm">
-                    PIXELPALOOZA - FESTIVAL DISPATCH
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className="bg-fest-magenta text-white font-grotesk font-black text-[10px] px-2.5 py-0.5 tracking-wider uppercase rounded">
+                    PIXELPALOOZA FESTIVAL DISPATCH
                   </span>
-                  <span className="bg-obsidian-950 border border-festival-cyan/60 text-festival-cyan font-bold text-[10px] px-2 py-0.5">
+                  <span className="bg-white/10 border border-white/20 text-fest-cyan font-grotesk font-bold text-[10px] px-2 py-0.5 rounded">
                     SYS_ID: OP-7849
                   </span>
                 </div>
 
-                {/* Festival Tagline */}
-                <div className="text-xs text-realm-gold font-bold italic tracking-wide mb-1 flex items-center gap-1">
-                  <span>&quot;Where ideas get Unhinged&quot;</span>
-                  <span>✨</span>
-                </div>
-
                 {/* Heading */}
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <h1 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight">
+                  <h1 className="font-anton text-3xl sm:text-4xl text-white uppercase tracking-tight">
                     GDGOC FESTIVAL CONTROL BOOTH
                   </h1>
-                  <span className="bg-festival-cyan text-obsidian-950 font-black text-[10px] px-2 py-0.5 uppercase tracking-wider">
-                    LIVE SCORING
+                  <span className="bg-fest-yellow text-black font-grotesk font-black text-[10px] px-2.5 py-1 rounded uppercase tracking-wider shadow-[1px_1px_0px_#000]">
+                    LIVE SCORING ACTIVE
                   </span>
                 </div>
+
+                <p className="font-sans text-xs text-slate-400 mt-1">
+                  Organizer command desk. Dispatch points, manage collegiate squads, and trigger stage announcements.
+                </p>
               </div>
 
               {/* Stat Boxes */}
               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <div className="bg-obsidian-950 border border-slate-800 p-2.5 text-center min-w-[95px] shadow-inner">
-                  <div className="text-[9px] uppercase tracking-wider text-slate-500">SCORES LOGGED</div>
-                  <div className="text-base font-bold text-festival-cyan">{scoreEvents.length} entries</div>
+                <div className="bg-white/10 border-2 border-white/20 rounded-2xl p-3 text-center min-w-[100px] shadow-[2px_2px_0px_#000]">
+                  <div className="font-grotesk text-[9px] uppercase font-bold tracking-wider text-slate-400">SCORES LOGGED</div>
+                  <div className="font-anton text-2xl text-fest-cyan">{scoreEvents.length}</div>
                 </div>
 
-                <div className="bg-obsidian-950 border border-slate-800 p-2.5 text-center min-w-[95px] shadow-inner">
-                  <div className="text-[9px] uppercase tracking-wider text-slate-500">LAST LOGGED</div>
-                  <div className="text-base font-bold text-festival-emerald">
-                    {scoreEvents[0]
-                      ? new Date(scoreEvents[0].created_at).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })
-                      : "—"}
-                  </div>
+                <div className="bg-white/10 border-2 border-white/20 rounded-2xl p-3 text-center min-w-[100px] shadow-[2px_2px_0px_#000]">
+                  <div className="font-grotesk text-[9px] uppercase font-bold tracking-wider text-slate-400">ACTIVE SQUADS</div>
+                  <div className="font-anton text-2xl text-fest-yellow">{teams.length}</div>
                 </div>
 
-                <div className="bg-obsidian-950 border border-slate-800 p-2.5 min-w-[130px] shadow-inner">
-                  <div className="text-[9px] uppercase tracking-wider text-slate-500">ACTIVE ARENA</div>
-                  <div className="text-xs font-bold text-realm-gold truncate flex items-center gap-1">
-                    <span>🎤</span>
+                <div className="bg-white/10 border-2 border-white/20 rounded-2xl p-3 min-w-[140px] shadow-[2px_2px_0px_#000]">
+                  <div className="font-grotesk text-[9px] uppercase font-bold tracking-wider text-slate-400">ACTIVE ARENA</div>
+                  <div className="font-anton text-lg text-emerald-400 truncate flex items-center gap-1 mt-0.5">
                     <span>{activeGame?.name || "Tech Jeopardy"}</span>
                   </div>
                 </div>
@@ -549,16 +538,24 @@ export default function AdminFestivalControlBooth() {
             {/* LEFT COLUMN: Dispatch Desk & Recent Score Transactions */}
             <div className="lg:col-span-8 space-y-6">
               {/* FESTIVAL SCORE DISPATCH BOOTH */}
-              <div className="voxel-card border-2 border-voxel-border bg-obsidian-900 p-5 shadow-voxel">
-                <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">🗂️</span>
-                    <h2 className="text-sm font-black text-white uppercase tracking-wider">
-                      FESTIVAL SCORE DISPATCH BOOTH
-                    </h2>
+              <div className="bg-black/90 border-4 border-black rounded-3xl p-6 sm:p-8 retro-shadow-black">
+                <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-10 h-10 rounded-xl bg-fest-yellow text-black border-2 border-black flex items-center justify-center font-anton text-lg shadow-[2px_2px_0px_#000]">
+                      ⚡
+                    </span>
+                    <div>
+                      <h2 className="font-anton text-3xl uppercase tracking-tight text-white leading-none">
+                        SCORE DISPATCH BOOTH
+                      </h2>
+                      <span className="font-grotesk text-[10px] uppercase font-bold text-fest-cyan tracking-widest mt-0.5 block">
+                        REALTIME SCORE BROADCAST // GDG ON CAMPUS
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-[10px] font-bold text-festival-emerald bg-festival-emerald/10 border border-festival-emerald/40 px-2 py-0.5">
-                    ● DISPATCH: READY
+                  <span className="font-grotesk text-[10px] font-black text-emerald-400 bg-emerald-950/80 border border-emerald-500/40 px-3 py-1 rounded-full flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                    <span>DISPATCH ACTIVE</span>
                   </span>
                 </div>
 
@@ -749,15 +746,15 @@ export default function AdminFestivalControlBooth() {
                     type="button"
                     onClick={() => handleAddScore(undefined, "SCORE")}
                     disabled={isProcessing || !pointsInput || teams.length === 0}
-                    className="w-full btn-voxel bg-festival-emerald hover:bg-emerald-400 text-obsidian-950 font-black py-3 text-sm uppercase tracking-wider transition-all border-festival-emerald shadow-festival-emerald flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="w-full py-4 px-6 bg-fest-yellow hover:bg-fest-coral hover:text-white text-black font-anton text-xl uppercase tracking-wider rounded-xl border-3 border-black retro-shadow-black transition-all flex items-center justify-center gap-2 active:translate-y-0.5 disabled:opacity-50"
                   >
-                    <span className="text-base">🎵</span>
+                    <span>⚡</span>
                     <span>
                       {isProcessing
                         ? "COMMITTING SCORE..."
                         : teams.length === 0
                         ? "REGISTER A SQUAD FIRST"
-                        : `+ ADD SCORE TO LIVE LEADERBOARD (${pointsInput > 0 ? "+" : ""}${pointsInput} XP)`}
+                        : `DISPATCH XP TO MASTER LEADERBOARD (${pointsInput > 0 ? "+" : ""}${pointsInput} XP)`}
                     </span>
                   </button>
                 </div>
@@ -839,16 +836,16 @@ export default function AdminFestivalControlBooth() {
               </div>
 
               {/* RECENT SCORE TRANSACTIONS (LIVE SYNC) - ROLLBACK ENABLED */}
-              <div className="voxel-card border-2 border-voxel-border bg-obsidian-900 p-5 shadow-voxel">
-                <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
-                  <div className="flex items-center gap-2">
-                    <RotateCcw className="w-4 h-4 text-festival-cyan" />
-                    <h2 className="text-sm font-black text-white uppercase tracking-wider">
+              <div className="bg-black/90 border-4 border-black rounded-3xl p-6 retro-shadow-black">
+                <div className="flex items-center justify-between mb-4 border-b-2 border-white/20 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <RotateCcw className="w-5 h-5 text-fest-cyan" />
+                    <h2 className="font-anton text-2xl uppercase tracking-wider text-white">
                       RECENT SCORE TRANSACTIONS (LIVE SYNC)
                     </h2>
                   </div>
-                  <span className="text-[10px] font-bold text-festival-cyan bg-festival-cyan/10 border border-festival-cyan/40 px-2 py-0.5">
-                    ● ROLLBACK ENABLED
+                  <span className="font-grotesk text-[10px] font-black text-fest-cyan bg-cyan-950/80 border border-cyan-500/40 px-3 py-1 rounded-full uppercase">
+                    ROLLBACK ENABLED
                   </span>
                 </div>
 
@@ -930,16 +927,16 @@ export default function AdminFestivalControlBooth() {
             {/* RIGHT COLUMN: Festival Squads & Stage Actions */}
             <div className="lg:col-span-4 space-y-6">
               {/* REGISTER SQUAD PANEL + BULK IMPORT BUTTON */}
-              <div id="squad-registry-panel" className="voxel-card border-2 border-voxel-border bg-obsidian-900 p-5 shadow-voxel">
-                <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+              <div id="squad-registry-panel" className="bg-black/90 border-4 border-black rounded-3xl p-6 retro-shadow-black">
+                <div className="flex items-center justify-between mb-4 border-b-2 border-white/20 pb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">🎪</span>
-                    <h2 className="text-sm font-black text-white uppercase tracking-wider">
+                    <span className="text-xl">🎪</span>
+                    <h2 className="font-anton text-2xl uppercase tracking-wider text-white">
                       FESTIVAL SQUADS ({teams.length})
                     </h2>
                   </div>
-                  <span className="text-[10px] font-bold text-realm-gold bg-amber-950/60 border border-amber-700 px-2 py-0.5">
-                    POOL A & B
+                  <span className="font-grotesk text-[10px] font-black text-black bg-fest-yellow px-2.5 py-1 rounded shadow-[1px_1px_0px_#000]">
+                    REGISTRY ACTIVE
                   </span>
                 </div>
 
@@ -947,9 +944,9 @@ export default function AdminFestivalControlBooth() {
                 <button
                   type="button"
                   onClick={() => setShowBulkModal(true)}
-                  className="w-full mb-4 px-3 py-2 bg-obsidian-950 hover:bg-festival-cyan/15 border border-festival-cyan/60 hover:border-festival-cyan text-festival-cyan font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-voxel-sm"
+                  className="w-full mb-4 px-4 py-3 bg-fest-cyan hover:bg-white text-black font-anton text-sm uppercase tracking-wider rounded-xl border-2 border-black retro-shadow-black flex items-center justify-center gap-2 transition-all active:translate-y-0.5"
                 >
-                  <FileSpreadsheet className="w-4 h-4" />
+                  <FileSpreadsheet className="w-4 h-4 stroke-[2.5]" />
                   <span>+ BULK IMPORT SQUADS (CSV)</span>
                 </button>
 
@@ -1026,10 +1023,10 @@ export default function AdminFestivalControlBooth() {
               </div>
 
               {/* SQUADS LIST */}
-              <div className="voxel-card border-2 border-voxel-border bg-obsidian-900 p-4 shadow-voxel max-h-[460px] overflow-y-auto">
-                <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-3 flex items-center justify-between">
+              <div className="bg-black/90 border-4 border-black rounded-3xl p-6 retro-shadow-black max-h-[480px] overflow-y-auto">
+                <div className="font-grotesk text-xs uppercase font-black tracking-widest text-slate-400 mb-3 flex items-center justify-between border-b border-white/10 pb-2">
                   <span>CURRENT STANDINGS SQUADS</span>
-                  <span className="text-festival-cyan">{standings.length} ACTIVE</span>
+                  <span className="text-fest-cyan">{standings.length} ACTIVE</span>
                 </div>
 
                 {standings.length === 0 ? (
@@ -1101,33 +1098,33 @@ export default function AdminFestivalControlBooth() {
               </div>
 
               {/* STAGE BROADCAST ACTIONS */}
-              <div className="voxel-card border-2 border-voxel-border bg-obsidian-900 p-4 shadow-voxel">
-                <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-3 flex items-center gap-1.5">
+              <div className="bg-black/90 border-4 border-black rounded-3xl p-6 retro-shadow-black">
+                <div className="font-anton text-xl uppercase tracking-wider text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-2">
                   <span>🎆</span>
                   <span>STAGE BROADCAST ACTIONS</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="grid grid-cols-2 gap-3 mb-4">
                   <button
                     type="button"
                     onClick={toggleHudFreeze}
-                    className={`p-2.5 border text-center font-bold text-xs transition-all flex items-center justify-center gap-1.5 shadow-voxel-sm ${
+                    className={`py-3 px-4 rounded-xl border-2 font-anton text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-[2px_2px_0px_#000] active:translate-y-0.5 ${
                       eventState.is_hud_frozen
-                        ? "bg-amber-500 text-black border-amber-600 font-black"
-                        : "bg-obsidian-950 border-amber-800/80 text-amber-400 hover:border-amber-500"
+                        ? "bg-fest-coral text-white border-black"
+                        : "bg-white/10 border-white/20 text-fest-yellow hover:bg-white/20"
                     }`}
                   >
-                    <Pause className="w-3.5 h-3.5" />
+                    <Pause className="w-4 h-4 stroke-[2.5]" />
                     <span>{eventState.is_hud_frozen ? "HUD FROZEN" : "FREEZE HUD"}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleStageFx}
-                    className="p-2.5 bg-gradient-to-r from-amber-500 to-festival-orange text-black font-black text-xs transition-all flex items-center justify-center gap-1.5 shadow-voxel-sm hover:brightness-110"
+                    className="py-3 px-4 bg-fest-yellow hover:bg-white text-black font-anton text-sm uppercase tracking-wider rounded-xl border-2 border-black retro-shadow-black transition-all flex items-center justify-center gap-2 active:translate-y-0.5"
                   >
-                    <Sparkles className="w-3.5 h-3.5 fill-black" />
-                    <span>STAGE FX</span>
+                    <Sparkles className="w-4 h-4 fill-black" />
+                    <span>STAGE FX ⚡</span>
                   </button>
                 </div>
 
@@ -1148,32 +1145,6 @@ export default function AdminFestivalControlBooth() {
                     CLEAR ALL SQUADS
                   </button>
                 </div>
-
-                {/* Optional Organizer Sample Seed Test Button */}
-                <div className="mt-3 pt-2 border-t border-slate-800 text-center">
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (confirm("Load sample test squads & scores for dry-run testing?")) {
-                        for (const dt of DEMO_SAMPLE_TEAMS) {
-                          await createTeam(dt.name, dt.captain, dt.members);
-                        }
-                        for (const ds of DEMO_SAMPLE_SCORES) {
-                          await addScore({
-                            teamId: ds.team_id,
-                            gameId: ds.game_id,
-                            points: ds.points,
-                            type: ds.type,
-                            reason: ds.reason,
-                          });
-                        }
-                      }
-                    }}
-                    className="text-[10px] text-slate-500 hover:text-festival-cyan transition-colors"
-                  >
-                    ⚡ [Dry-Run] Load Sample College Squads (Testing Only)
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -1184,23 +1155,23 @@ export default function AdminFestivalControlBooth() {
       {/* BULK IMPORT MODAL */}
       {/* =================================================================== */}
       {showBulkModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
-          <div className="voxel-card border-2 border-festival-cyan bg-obsidian-900 p-6 max-w-lg w-full shadow-voxel">
-            <h3 className="text-base font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
-              <FileSpreadsheet className="w-5 h-5 text-festival-cyan" />
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white text-slate-900 border-4 border-black rounded-3xl p-6 sm:p-8 max-w-lg w-full retro-shadow-black">
+            <h3 className="font-anton text-2xl uppercase tracking-wider text-black mb-2 flex items-center gap-2">
+              <FileSpreadsheet className="w-6 h-6 text-fest-cyan" />
               <span>BULK IMPORT FESTIVAL SQUADS</span>
             </h3>
 
-            <p className="text-xs text-slate-300 leading-relaxed mb-3">
-              Paste your team list below. Each line will create one squad:
+            <p className="font-sans text-xs text-slate-600 leading-relaxed mb-3">
+              Paste your team list below. Each line creates one squad:
               <br />
-              <code className="text-festival-cyan font-mono text-[11px]">
+              <code className="bg-slate-100 border border-slate-300 px-2 py-0.5 rounded font-mono text-[11px] text-black inline-block mt-1">
                 Team Name, Captain, Member 1, Member 2, Member 3
               </code>
             </p>
 
             {bulkError && (
-              <div className="mb-3 p-2 bg-red-950/60 border border-red-800 text-red-300 text-xs">
+              <div className="mb-3 p-3 bg-red-100 border-2 border-red-500 rounded-xl text-red-900 text-xs font-grotesk font-bold">
                 {bulkError}
               </div>
             )}
@@ -1210,7 +1181,7 @@ export default function AdminFestivalControlBooth() {
               value={bulkCsvText}
               onChange={(e) => setBulkCsvText(e.target.value)}
               placeholder="Byte Bandits, Krishna, Rahul, Aarav, Riya&#10;Code Raiders, Tanya, Sneha, Rohan, Aditya&#10;Pixel Pioneers, Vikram, Kabir, Ananya, Dev"
-              className="w-full bg-obsidian-950 border-2 border-slate-700 text-white p-3 text-xs font-mono focus:outline-none focus:border-festival-cyan mb-3 leading-relaxed"
+              className="w-full bg-slate-50 border-2 border-black rounded-xl text-black p-3 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-fest-cyan mb-3 leading-relaxed"
             />
 
             <div className="flex items-center justify-between gap-3">
@@ -1221,25 +1192,25 @@ export default function AdminFestivalControlBooth() {
                     "Byte Bandits, Krishna, Rahul, Aarav, Riya\nCode Raiders, Tanya, Sneha, Rohan, Aditya\nPixel Pioneers, Vikram, Kabir, Ananya, Dev\nDebug Squad, Sarah, Mihir, Kavya, Siddharth\nBinary Beasts, Dev, Nikhil, Diya, Alok\nSyntax Squad, Ananya, Varun, Meera, Arjun"
                   );
                 }}
-                className="text-[11px] text-festival-cyan hover:underline"
+                className="font-grotesk text-xs font-bold text-fest-magenta hover:underline"
               >
-                Insert Example Template
+                + Insert Example Roster
               </button>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowBulkModal(false)}
-                  className="px-3 py-1.5 bg-obsidian-950 border border-slate-700 text-slate-300 text-xs"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-black rounded-xl text-black font-grotesk font-bold text-xs uppercase"
                 >
                   CANCEL
                 </button>
                 <button
                   type="button"
                   onClick={handleBulkImport}
-                  className="btn-voxel px-4 py-1.5 bg-festival-cyan text-obsidian-950 border-festival-cyan font-black text-xs uppercase tracking-wider"
+                  className="px-5 py-2 bg-fest-cyan hover:bg-black hover:text-white text-black font-anton text-sm uppercase tracking-wider rounded-xl border-2 border-black retro-shadow-black transition-all active:translate-y-0.5"
                 >
-                  IMPORT SQUADS
+                  IMPORT SQUADS ⚡
                 </button>
               </div>
             </div>
@@ -1249,26 +1220,26 @@ export default function AdminFestivalControlBooth() {
 
       {/* UNDO CONFIRMATION MODAL */}
       {undoTargetId && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="voxel-card border-2 border-amber-600 bg-obsidian-900 p-6 max-w-md w-full shadow-voxel">
-            <h3 className="text-base font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <RotateCcw className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white text-slate-900 border-4 border-black rounded-3xl p-6 sm:p-8 max-w-md w-full retro-shadow-black">
+            <h3 className="font-anton text-2xl uppercase tracking-wider text-amber-600 mb-2 flex items-center gap-2">
+              <RotateCcw className="w-6 h-6 stroke-[2.5]" />
               <span>CONFIRM SCORE REVERSAL (UNDO)</span>
             </h3>
-            <p className="text-xs text-slate-300 leading-relaxed mb-4">
+            <p className="font-sans text-xs text-slate-700 leading-relaxed mb-6">
               This action will NOT delete the original record. Instead, it creates an audited 
-              REVERSAL score event that deducts the points and maintains full tournament traceability.
+              <strong className="text-black"> REVERSAL</strong> score event that deducts the points and maintains full tournament audit traceability.
             </p>
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setUndoTargetId(null)}
-                className="px-4 py-2 bg-obsidian-950 border border-slate-700 text-slate-300 hover:text-white text-xs font-bold"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-black rounded-xl text-black font-grotesk font-bold text-xs uppercase"
               >
                 CANCEL
               </button>
               <button
                 onClick={handleConfirmUndo}
-                className="btn-voxel px-4 py-2 bg-amber-500 text-black border-amber-600 text-xs font-black uppercase tracking-wider hover:bg-amber-400"
+                className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-anton text-sm uppercase tracking-wider rounded-xl border-2 border-black retro-shadow-black transition-all active:translate-y-0.5"
               >
                 CONFIRM REVERSAL
               </button>
@@ -1279,36 +1250,36 @@ export default function AdminFestivalControlBooth() {
 
       {/* EDIT TEAM MODAL */}
       {editingTeam && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
-          <div className="voxel-card border-2 border-voxel-border bg-obsidian-900 p-6 max-w-md w-full shadow-voxel">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-              <Edit3 className="w-4 h-4 text-festival-emerald" />
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white text-slate-900 border-4 border-black rounded-3xl p-6 sm:p-8 max-w-md w-full retro-shadow-black">
+            <h3 className="font-anton text-2xl uppercase tracking-wider text-black mb-4 flex items-center gap-2">
+              <Edit3 className="w-5 h-5 text-fest-magenta" />
               <span>EDIT SQUAD DETAILS</span>
             </h3>
 
-            <div className="space-y-3 mb-4">
+            <div className="space-y-3 mb-6">
               <div>
-                <label className="block text-[10px] text-slate-400 uppercase mb-1">TEAM NAME</label>
+                <label className="block font-grotesk text-xs uppercase font-bold text-slate-600 mb-1">TEAM NAME</label>
                 <input
                   type="text"
                   value={editingTeam.name}
                   onChange={(e) => setEditingTeam({ ...editingTeam, name: e.target.value })}
-                  className="w-full bg-obsidian-950 border border-slate-700 text-white px-3 py-2 text-xs focus:outline-none focus:border-festival-pink"
+                  className="w-full bg-slate-50 border-2 border-black rounded-xl text-black px-3 py-2 text-sm font-grotesk font-bold focus:outline-none focus:ring-2 focus:ring-fest-yellow"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-400 uppercase mb-1">CAPTAIN</label>
+                <label className="block font-grotesk text-xs uppercase font-bold text-slate-600 mb-1">CAPTAIN</label>
                 <input
                   type="text"
                   value={editingTeam.captain}
                   onChange={(e) => setEditingTeam({ ...editingTeam, captain: e.target.value })}
-                  className="w-full bg-obsidian-950 border border-slate-700 text-white px-3 py-2 text-xs focus:outline-none focus:border-festival-pink"
+                  className="w-full bg-slate-50 border-2 border-black rounded-xl text-black px-3 py-2 text-sm font-grotesk font-bold focus:outline-none focus:ring-2 focus:ring-fest-yellow"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-400 uppercase mb-1">
+                <label className="block font-grotesk text-xs uppercase font-bold text-slate-600 mb-1">
                   MEMBERS (COMMA SEPARATED)
                 </label>
                 <input
@@ -1320,7 +1291,7 @@ export default function AdminFestivalControlBooth() {
                       members: e.target.value.split(",").map((m) => m.trim()),
                     })
                   }
-                  className="w-full bg-obsidian-950 border border-slate-700 text-white px-3 py-2 text-xs focus:outline-none focus:border-festival-pink"
+                  className="w-full bg-slate-50 border-2 border-black rounded-xl text-black px-3 py-2 text-sm font-grotesk focus:outline-none focus:ring-2 focus:ring-fest-yellow"
                 />
               </div>
             </div>
@@ -1328,7 +1299,7 @@ export default function AdminFestivalControlBooth() {
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setEditingTeam(null)}
-                className="px-4 py-2 bg-obsidian-950 border border-slate-700 text-slate-300 text-xs"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-black rounded-xl text-black font-grotesk font-bold text-xs uppercase"
               >
                 CANCEL
               </button>
@@ -1342,7 +1313,7 @@ export default function AdminFestivalControlBooth() {
                   );
                   setEditingTeam(null);
                 }}
-                className="btn-voxel px-4 py-2 bg-festival-emerald text-obsidian-950 border-festival-emerald text-xs font-bold uppercase tracking-wider"
+                className="px-5 py-2.5 bg-fest-yellow hover:bg-fest-coral hover:text-white text-black font-anton text-sm uppercase tracking-wider rounded-xl border-2 border-black retro-shadow-black transition-all active:translate-y-0.5"
               >
                 SAVE CHANGES
               </button>
@@ -1353,14 +1324,14 @@ export default function AdminFestivalControlBooth() {
 
       {/* RESET CONFIRMATION MODAL */}
       {showResetModal && (
-        <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
-          <div className="voxel-card border-2 border-red-600 bg-obsidian-900 p-6 max-w-md w-full shadow-voxel">
-            <h3 className="text-base font-black text-red-500 uppercase tracking-wider mb-2 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5" />
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white text-slate-900 border-4 border-black rounded-3xl p-6 sm:p-8 max-w-md w-full retro-shadow-black">
+            <h3 className="font-anton text-2xl uppercase tracking-wider text-red-600 mb-2 flex items-center gap-2">
+              <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
               <span>DANGER: CONFIRM {showResetModal === "scores" ? "SCORE RESET" : "CLEAR ALL SQUADS"}</span>
             </h3>
 
-            <p className="text-xs text-slate-300 leading-relaxed mb-4">
+            <p className="font-sans text-xs text-slate-700 leading-relaxed mb-6">
               {showResetModal === "scores"
                 ? "This will clear all recorded score events and reset all team scores to 0 XP. Teams will NOT be deleted."
                 : "This will delete all squads and scores, leaving a completely clean slate for your event."}
@@ -1369,7 +1340,7 @@ export default function AdminFestivalControlBooth() {
             <div className="flex items-center justify-end gap-3">
               <button
                 onClick={() => setShowResetModal(null)}
-                className="px-4 py-2 bg-obsidian-950 border border-slate-700 text-slate-300 text-xs font-bold"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 border-2 border-black rounded-xl text-black font-grotesk font-bold text-xs uppercase"
               >
                 CANCEL
               </button>
@@ -1382,7 +1353,7 @@ export default function AdminFestivalControlBooth() {
                   }
                   setShowResetModal(null);
                 }}
-                className="btn-voxel px-4 py-2 bg-red-600 text-white border-red-700 text-xs font-black uppercase tracking-wider hover:bg-red-500"
+                className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-anton text-sm uppercase tracking-wider rounded-xl border-2 border-black retro-shadow-black transition-all active:translate-y-0.5"
               >
                 CONFIRM {showResetModal === "scores" ? "RESET SCORES" : "CLEAR ALL SQUADS"}
               </button>

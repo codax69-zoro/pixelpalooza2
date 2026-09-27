@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ArenaProvider } from "@/lib/store/arena-context";
-import { ParticleBackground } from "@/components/ParticleBackground";
 
 export const metadata: Metadata = {
-  title: "GDGOC GAME ARENA | Campus Tournament Leaderboard",
+  title: "PIXELPALOOZA 2025 | GDG On Campus NMIMS Navi Mumbai",
   description:
-    "Production-grade manual score management and real-time live leaderboard system for GDGOC technical gaming events.",
+    "The mega techno-cultural music festival & competitive sandbox gaming arena. 16 Collegiate Squads, 7 Biome Stages, 8 Hours of relentless algorithmic combat and digital sonic euphoria.",
 };
 
 export default function RootLayout({
@@ -15,13 +14,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-obsidian-950 text-slate-100 min-h-screen relative font-mono selection:bg-realm-emerald selection:text-obsidian-950">
+    <html lang="en" className="scroll-smooth">
+      <body className="bg-white font-sans text-slate-900 antialiased selection:bg-fest-yellow selection:text-black overflow-x-hidden">
         <ArenaProvider>
-          <ParticleBackground />
-          <div className="relative z-10 min-h-screen flex flex-col">
-            {children}
-          </div>
+          {children}
         </ArenaProvider>
       </body>
     </html>

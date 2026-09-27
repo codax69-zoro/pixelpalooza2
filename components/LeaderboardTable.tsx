@@ -20,6 +20,7 @@ import {
   Users
 } from "lucide-react";
 import { TeamStanding, Game } from "@/types/arena";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
 
 interface LeaderboardTableProps {
   standings: TeamStanding[];
@@ -266,7 +267,7 @@ export function LeaderboardTable({ standings, games }: LeaderboardTableProps) {
                           <div className="flex flex-col items-end">
                             <div className="flex items-baseline gap-1">
                               <span className="text-base font-bold text-white group-hover:text-festival-emerald transition-colors">
-                                {item.total_xp}
+                                <AnimatedCounter value={item.total_xp} />
                               </span>
                               <span className="text-[11px] text-slate-400 font-semibold">XP</span>
                             </div>

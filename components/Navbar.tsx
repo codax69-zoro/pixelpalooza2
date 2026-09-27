@@ -30,51 +30,49 @@ export function Navbar() {
   };
 
   const navLinks = [
-    { href: "/", label: "PUBLIC ARENA", icon: Gamepad2 },
+    { href: "/", label: "FESTIVAL ARENA", icon: Gamepad2 },
     { href: "/leaderboard", label: "LIVE LEADERBOARD", icon: Trophy },
-    { href: "/games", label: "FESTIVAL ATTRACTIONS", icon: Gamepad2 },
-    { href: teams[0] ? `/teams/${teams[0].id}` : "/teams", label: "SQUAD PROFILE", icon: Users },
+    { href: "/games", label: "7 ATTRACTIONS", icon: Gamepad2 },
+    { href: teams[0] ? `/teams/${teams[0].id}` : "/#leaderboard", label: "SQUAD DOSSIER", icon: Users },
     { href: "/display", label: "STAGE HUD", icon: Tv },
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-obsidian-950/95 backdrop-blur border-b border-voxel-border px-3 lg:px-6 py-2.5">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+    <header className="sticky top-0 z-40 w-full bg-black/90 backdrop-blur-md border-b-2 border-white/20 px-3 lg:px-6 py-2.5">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Logo / Brand */}
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 group">
-            {/* Audio Wave Logo matching Stitch screen */}
-            <div className="w-8 h-8 bg-gradient-to-br from-festival-pink to-purple-600 border border-festival-pink/60 flex items-center justify-center shadow-voxel-sm group-hover:scale-105 transition-all">
-              <span className="text-white font-mono text-xs font-black">|||</span>
+            {/* P25 Badge */}
+            <div className="w-9 h-9 rounded-lg overflow-hidden bg-white/10 p-0.5 border border-white/30 group-hover:scale-105 transition-transform flex items-center justify-center">
+              <span className="font-anton text-lg text-fest-yellow">P25</span>
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-white font-bold text-sm tracking-wide font-mono flex items-center gap-1">
-                  <span>PIXELPALOOZA</span>
-                  <span className="text-festival-pink text-xs">🎵</span>
+            <div className="flex flex-col leading-none">
+              <span className="font-anton text-xl tracking-wider text-white uppercase group-hover:text-fest-yellow transition-colors flex items-center gap-1.5">
+                PIXELPALOOZA
+                <span className="text-[10px] font-grotesk px-1.5 py-0.5 bg-fest-coral text-white rounded font-black tracking-normal">
+                  ’25
                 </span>
-              </div>
-              <p className="text-[10px] tracking-wider text-slate-400 uppercase font-mono font-medium flex items-center gap-1">
-                <span className="text-festival-cyan font-bold">GDG ON CAMPUS</span>
-                <span className="text-slate-600">·</span>
-                <span className="text-slate-300">NMIMS NAVI MUMBAI</span>
-              </p>
+              </span>
+              <span className="font-grotesk text-[9px] uppercase font-bold tracking-widest text-fest-cyan">
+                GDG ON CAMPUS • NMIMS NAVI MUMBAI
+              </span>
             </div>
           </Link>
         </div>
 
         {/* Navigation Items */}
-        <nav className="hidden md:flex items-center gap-1 text-xs font-mono font-medium">
+        <nav className="hidden md:flex items-center gap-2 font-grotesk text-xs uppercase font-bold tracking-wider">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-3 py-1.5 transition-all flex items-center gap-1.5 border-b-2 ${
+                className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
                   isActive
-                    ? "text-festival-pink border-festival-pink bg-festival-pink/10 font-bold"
-                    : "text-slate-400 border-transparent hover:text-slate-200 hover:border-slate-700"
+                    ? "bg-fest-yellow text-black font-black shadow-[2px_2px_0px_#000]"
+                    : "text-white/80 hover:text-fest-yellow hover:bg-white/5"
                 }`}
               >
                 <span>{link.label}</span>
@@ -88,51 +86,37 @@ export function Navbar() {
           {/* Admin Control Booth Button */}
           <Link
             href="/admin"
-            className="flex items-center gap-1.5 bg-obsidian-900 hover:bg-festival-pink/15 text-festival-pink border border-festival-pink/60 hover:border-festival-pink px-2.5 py-1 text-xs font-mono font-semibold transition-all shadow-voxel-sm active:translate-y-0.5"
+            className="flex items-center gap-1.5 bg-fest-cobalt hover:bg-fest-pink text-white border border-white/30 px-3 py-1.5 rounded-lg text-xs font-grotesk font-black uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000] active:translate-y-0.5"
           >
-            <Terminal className="w-3.5 h-3.5" />
+            <Terminal className="w-3.5 h-3.5 text-fest-yellow" />
             <span className="hidden sm:inline">CONTROL BOOTH</span>
           </Link>
 
           {/* Event Status Live Pill */}
-          <div className="hidden lg:flex items-center gap-1.5 bg-obsidian-900 border border-slate-800 px-2.5 py-1 text-[11px] font-mono">
-            <span className="w-2 h-2 rounded-full bg-realm-emerald animate-pulse" />
-            <span className="text-realm-emerald font-bold">FESTIVAL LIVE</span>
+          <div className="hidden lg:flex items-center gap-1.5 bg-black/60 border border-white/20 px-2.5 py-1.5 rounded-lg text-[11px] font-grotesk uppercase font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span className="text-emerald-400">FESTIVAL LIVE</span>
           </div>
 
-          {/* Active Attraction Pill */}
-          <div className="hidden xl:flex items-center gap-1.5 bg-obsidian-900 border border-slate-800 px-2.5 py-1 text-[11px] font-mono text-slate-300">
-            <span className="text-[9px] uppercase tracking-wider text-slate-500">STAGE:</span>
-            <span className="font-semibold text-festival-cyan truncate max-w-[120px]">
-              {activeGame?.attraction_stage || activeGame?.name || "Main Stage"}
-            </span>
-          </div>
-
-          {/* Squads Count */}
-          <div className="hidden sm:flex items-center gap-1 bg-obsidian-900 border border-slate-800 px-2 py-1 text-[11px] font-mono text-slate-300">
-            <Users className="w-3 h-3 text-slate-400" />
-            <span>{teams.length} SQUADS</span>
-          </div>
-
-          {/* Stage Projector Button (Amber with tent icon matching Stitch) */}
+          {/* Stage Projector Button */}
           <Link
             href="/display"
             target="_blank"
-            className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-festival-orange text-black font-black px-2.5 py-1 text-[11px] font-mono shadow-voxel-sm hover:brightness-110 transition-all active:translate-y-0.5"
+            className="hidden sm:flex items-center gap-1.5 bg-fest-yellow text-black font-anton tracking-wider px-3 py-1.5 rounded-lg text-xs uppercase border-2 border-black retro-shadow-black hover:bg-white transition-all active:translate-y-0.5"
             title="Open Stage Projector HUD"
           >
             <Tent className="w-3.5 h-3.5 stroke-[2.5]" />
-            <span>STAGE PROJECTOR ↗</span>
+            <span>HUD ↗</span>
           </Link>
 
           {/* Sound Toggle */}
           <button
             onClick={toggleSound}
             aria-label={muted ? "Unmute audio" : "Mute audio"}
-            className="p-1.5 bg-obsidian-900 hover:bg-obsidian-800 border border-slate-800 text-slate-400 hover:text-white transition-all"
+            className="p-2 rounded-lg bg-black/60 hover:bg-white/10 border border-white/20 text-white/80 hover:text-white transition-all"
             title={muted ? "Unmute Audio" : "Mute Audio"}
           >
-            {muted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-festival-emerald" />}
+            {muted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-fest-yellow" />}
           </button>
         </div>
       </div>

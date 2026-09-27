@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Flame, Trophy, Sparkles, Mic, Music, Radio } from "lucide-react";
 import { TeamStanding } from "@/types/arena";
 import confetti from "canvas-confetti";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
 
 interface StagePodiumProps {
   standings: TeamStanding[];
@@ -152,7 +153,7 @@ export function StagePodium({ standings }: StagePodiumProps) {
                   </span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-xl font-bold font-mono text-white">
-                      {second.total_xp}
+                      <AnimatedCounter value={second.total_xp} />
                     </span>
                     <span className="text-xs font-bold text-slate-400">XP</span>
                   </div>
@@ -241,7 +242,7 @@ export function StagePodium({ standings }: StagePodiumProps) {
                 </div>
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-black font-mono text-festival-emerald">
-                    {first.total_xp}
+                    <AnimatedCounter value={first.total_xp} />
                   </span>
                   <span className="text-xs font-bold text-realm-gold">XP</span>
                 </div>
@@ -334,7 +335,7 @@ export function StagePodium({ standings }: StagePodiumProps) {
                   </span>
                   <div className="flex items-baseline gap-1">
                     <span className="text-xl font-bold font-mono text-realm-gold">
-                      {third.total_xp}
+                      <AnimatedCounter value={third.total_xp} />
                     </span>
                     <span className="text-xs font-bold text-slate-400">XP</span>
                   </div>

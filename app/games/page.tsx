@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { LiveFeedTicker } from "@/components/LiveFeedTicker";
 import { FooterStatus } from "@/components/FooterStatus";
 import { PixelBunting } from "@/components/PixelBunting";
+import { FestoonLights } from "@/components/FestoonLights";
 import { 
   Grid, 
   PenTool, 
@@ -16,17 +17,27 @@ import {
   Zap, 
   Timer, 
   Award, 
-  ChevronDown,
-  ChevronUp,
+  ChevronRight,
+  Sparkles,
   Tent,
-  Mic,
-  Music
+  Radio,
+  Sliders,
+  CheckCircle2,
+  X
 } from "lucide-react";
 import { useArena } from "@/lib/store/arena-context";
 
 export default function GamesHubPage() {
   const { games, activeGame } = useArena();
-  const [expandedGameId, setExpandedGameId] = useState<string | null>(null);
+  const [selectedGameRules, setSelectedGameRules] = useState<{
+    id: string;
+    name: string;
+    stage: string;
+    rules: string[];
+    scoring_type: string;
+    duration: string;
+    description: string;
+  } | null>(null);
 
   const getGameIcon = (slug: string) => {
     switch (slug) {
@@ -35,153 +46,237 @@ export default function GamesHubPage() {
       case "debug-the-code": return Bug;
       case "tech-bomb-defusal": return Clock;
       case "ai-or-human": return Bot;
-      case "tech-jeopardy": return Mic;
-      case "code-relay": return Zap;
+      case "tech-jeopardy": return Zap;
+      case "code-relay": return Sliders;
       default: return Trophy;
     }
   };
 
-  const toggleExpand = (id: string) => {
-    setExpandedGameId((prev) => (prev === id ? null : id));
+  const getGameAccentColor = (index: number) => {
+    const colors = [
+      { border: "border-fest-yellow", text: "text-fest-yellow", bg: "bg-fest-yellow/10", chip: "bg-fest-yellow text-black" },
+      { border: "border-fest-cyan", text: "text-fest-cyan", bg: "bg-fest-cyan/10", chip: "bg-fest-cyan text-black" },
+      { border: "border-fest-pink", text: "text-fest-pink", bg: "bg-fest-pink/10", chip: "bg-fest-pink text-white" },
+      { border: "border-fest-coral", text: "text-fest-coral", bg: "bg-fest-coral/10", chip: "bg-fest-coral text-white" },
+      { border: "border-emerald-400", text: "text-emerald-400", bg: "bg-emerald-400/10", chip: "bg-emerald-400 text-black" },
+      { border: "border-purple-400", text: "text-purple-400", bg: "bg-purple-400/10", chip: "bg-purple-400 text-white" },
+      { border: "border-fest-yellow", text: "text-fest-yellow", bg: "bg-fest-yellow/10", chip: "bg-fest-yellow text-black" },
+    ];
+    return colors[index % colors.length];
   };
 
   return (
-    <div className="flex-1 flex flex-col font-mono">
+    <div className="flex-1 flex flex-col font-sans bg-[#1E1B4B] text-white selection:bg-fest-yellow selection:text-black min-h-screen">
       <Navbar />
       <LiveFeedTicker />
+      <FestoonLights />
       <PixelBunting />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-6 pt-6 pb-12">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-xs text-festival-pink font-bold mb-1 tracking-wider uppercase">
-            <span>PIXELPALOOZA FESTIVAL ATTRACTIONS & STAGES</span>
-            <span className="w-2 h-2 rounded-full bg-festival-pink inline-block animate-pulse" />
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-6 pt-8 pb-16">
+        {/* Header Hero matching Stitch Royal Cobalt Theme */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b-4 border-fest-yellow pb-8 mb-10">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-grotesk text-xs uppercase font-black tracking-widest text-fest-yellow bg-yellow-950/80 border border-fest-yellow px-4 py-1.5 rounded-full shadow-[2px_2px_0px_#000]">
+                [ 7 BIOME STAGES // ARENA PROTOCOL ]
+              </span>
+              <span className="w-2.5 h-2.5 rounded-full bg-fest-pink animate-ping inline-block" />
+            </div>
+
+            <h1 className="font-anton text-5xl sm:text-7xl lg:text-8xl uppercase tracking-tight text-white leading-none">
+              7 FESTIVAL ATTRACTIONS
+            </h1>
+
+            <p className="font-sans text-sm sm:text-base text-slate-300 mt-2 max-w-2xl font-medium">
+              Physical competitive gaming stages conducted live across NMIMS Navi Mumbai. Referees verify algorithmic completions and stream XP directly to the master leaderboard.
+            </p>
           </div>
 
-          <div className="text-xs text-realm-gold font-bold italic tracking-wide mb-1">
-            &quot;Where ideas get Unhinged&quot; · GDGOC NMIMS NAVI MUMBAI
+          {/* Quick Stats Banner */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="bg-black/60 border-2 border-white/20 rounded-xl px-4 py-2.5 retro-shadow-black">
+              <span className="font-grotesk text-[10px] uppercase font-bold text-slate-400 block">TOTAL ATTRACTIONS</span>
+              <span className="font-anton text-2xl text-fest-yellow">7 LIVE STAGES</span>
+            </div>
+            <div className="bg-black/60 border-2 border-white/20 rounded-xl px-4 py-2.5 retro-shadow-black">
+              <span className="font-grotesk text-[10px] uppercase font-bold text-slate-400 block">MAX XP POOL</span>
+              <span className="font-anton text-2xl text-fest-cyan">1,800+ XP</span>
+            </div>
+            <Link
+              href="/admin"
+              className="px-5 py-3 bg-fest-yellow text-black font-anton text-base uppercase tracking-wider rounded-xl border-2 border-black retro-shadow-black hover:bg-white transition-all active:translate-y-0.5"
+            >
+              DISPATCH XP ⚡
+            </Link>
           </div>
-
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
-            FESTIVAL ATTRACTIONS // PROTOCOL
-          </h1>
-
-          <p className="text-xs sm:text-sm text-slate-400 mt-2 max-w-3xl leading-relaxed">
-            All 7 physical arena attractions conducted live by GDGOC organizers during Pixelpalooza. 
-            Referees verify completions and dispatch points directly to the live scoring grid.
-          </p>
         </div>
 
-        {/* Games Grid */}
+        {/* 7 Attractions Grid with Neo-Brutalist Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {games.map((game, index) => {
             const Icon = getGameIcon(game.slug);
-            const isExpanded = expandedGameId === game.id;
             const isActive = activeGame?.id === game.id;
+            const accent = getGameAccentColor(index);
+            const rules = Array.isArray(game.rules) ? game.rules : [];
 
             return (
               <div
                 key={game.id}
-                className={`voxel-card border-2 transition-all p-5 flex flex-col justify-between shadow-voxel ${
+                className={`bg-black/80 rounded-2xl border-4 p-6 flex flex-col justify-between transition-all duration-200 relative group hover:-translate-y-1.5 ${
                   isActive
-                    ? "border-festival-pink bg-obsidian-850 shadow-festival-pink ring-1 ring-festival-pink"
-                    : "border-voxel-border bg-obsidian-900 hover:border-slate-600"
+                    ? "border-fest-yellow ring-4 ring-fest-yellow/20 retro-shadow-yellow shadow-[6px_6px_0px_#FFE500]"
+                    : "border-black retro-shadow-black hover:border-white/50"
                 }`}
               >
+                {/* Active Stage Floating Ribbon */}
+                {isActive && (
+                  <div className="absolute -top-3.5 right-6 bg-fest-yellow text-black font-anton text-xs uppercase px-3 py-1 rounded-full border-2 border-black shadow-[2px_2px_0px_#000] flex items-center gap-1.5 animate-bounce">
+                    <span className="w-2 h-2 rounded-full bg-black animate-ping" />
+                    <span>NOW ACTIVE ON STAGE</span>
+                  </div>
+                )}
+
                 <div>
-                  {/* Top Bar with Number & Stage Tag */}
+                  {/* Top Bar with Number & Icon */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-10 h-10 bg-obsidian-950 border border-slate-700 flex items-center justify-center text-festival-pink">
-                        <Icon className="w-5 h-5" />
+                      <div className={`w-12 h-12 rounded-xl bg-white/10 border-2 border-white/20 flex items-center justify-center ${accent.text} group-hover:scale-105 transition-transform`}>
+                        <Icon className="w-6 h-6 stroke-[2.2]" />
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-500 uppercase block">
+                        <span className="font-grotesk text-[10px] uppercase font-bold tracking-widest text-slate-400 block">
                           STAGE {String(index + 1).padStart(2, "0")}
                         </span>
-                        <span className="text-[10px] font-black text-festival-cyan uppercase">
-                          {game.attraction_stage || "Attraction"}
+                        <span className="font-grotesk text-xs uppercase font-black text-fest-cyan">
+                          {game.attraction_stage || `ZONE 0${index + 1}`}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="text-[9px] font-black px-2 py-0.5 border border-amber-600 bg-amber-950/60 text-realm-gold">
-                        {game.stage_tag || "ARENA"}
-                      </span>
-                      {isActive && (
-                        <span className="text-[9px] font-bold text-festival-pink animate-pulse">
-                          ● ACTIVE STAGE
-                        </span>
-                      )}
-                    </div>
+                    <span className={`font-grotesk text-[10px] uppercase font-black px-2.5 py-1 rounded-md ${accent.chip} border border-black shadow-[1px_1px_0px_#000]`}>
+                      +300 XP MAX
+                    </span>
                   </div>
 
-                  {/* Title */}
-                  <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-2">
+                  {/* Attraction Title */}
+                  <h3 className="font-anton text-3xl uppercase tracking-tight text-white mb-2 group-hover:text-fest-yellow transition-colors leading-tight">
                     {game.name}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                    {game.description}
+                  <p className="font-sans text-xs text-slate-300 mb-4 line-clamp-2 leading-relaxed">
+                    {game.description || "Fast-paced collegiate competitive technology sprint with live referee verification."}
                   </p>
 
-                  {/* Meta Pills */}
-                  <div className="grid grid-cols-2 gap-2 text-xs mb-4">
-                    <div className="bg-obsidian-950 p-2 border border-slate-800 flex items-center gap-1.5 text-slate-300">
-                      <Timer className="w-3.5 h-3.5 text-festival-cyan" />
-                      <span className="text-[11px] truncate">{game.duration}</span>
-                    </div>
-
-                    <div className="bg-obsidian-950 p-2 border border-slate-800 flex items-center gap-1.5 text-slate-300">
-                      <Award className="w-3.5 h-3.5 text-realm-gold" />
-                      <span className="text-[11px] truncate">{game.scoring_type}</span>
-                    </div>
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-1.5 mb-5">
+                    <span className="font-grotesk text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white/10 text-slate-300 border border-white/10">
+                      ⏱ {game.duration ? game.duration.toUpperCase() : "15 MIN"}
+                    </span>
+                    <span className="font-grotesk text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-white/10 text-slate-300 border border-white/10">
+                      🎯 {game.scoring_type?.toUpperCase() || "XP BASED"}
+                    </span>
                   </div>
 
-                  {/* Expandable Rules Section */}
-                  {isExpanded && (
-                    <div className="mt-4 pt-4 border-t border-slate-800 space-y-2 text-xs">
-                      <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-                        OFFICIAL ATTRACTION RULES:
-                      </div>
-                      <ul className="space-y-1.5 text-slate-300">
-                        {game.rules.map((rule, rIdx) => (
-                          <li key={rIdx} className="flex items-start gap-1.5 text-[11px]">
-                            <span className="text-festival-pink font-bold mt-0.5">•</span>
-                            <span>{rule}</span>
-                          </li>
-                        ))}
-                      </ul>
+                  {/* Rules Preview */}
+                  {rules.length > 0 && (
+                    <div className="border-t border-white/10 pt-3 mb-4 space-y-1.5">
+                      {rules.slice(0, 2).map((rule, rIdx) => (
+                        <div key={rIdx} className="flex items-start gap-2 text-[11px] font-sans text-slate-300">
+                          <span className="text-fest-yellow font-bold">›</span>
+                          <span className="line-clamp-1">{rule}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
 
-                {/* Footer Buttons */}
-                <div className="mt-5 pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => toggleExpand(game.id)}
-                    className="flex items-center gap-1 text-xs text-slate-400 hover:text-white font-semibold transition-colors"
-                  >
-                    <span>{isExpanded ? "HIDE RULES" : "VIEW ATTRACTION RULES"}</span>
-                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                  </button>
-
-                  <Link
-                    href={`/leaderboard`}
-                    className="text-xs text-festival-emerald hover:underline font-bold"
-                  >
-                    STANDINGS →
-                  </Link>
-                </div>
+                {/* Inspect Action */}
+                <button
+                  onClick={() =>
+                    setSelectedGameRules({
+                      id: game.id,
+                      name: game.name,
+                      stage: game.attraction_stage || `Zone 0${index + 1}`,
+                      rules: rules.length > 0 ? rules : ["Standard GDGOC tournament scoring applies.", "Referees evaluate accuracy and time taken.", "Zero unauthorized aids permitted."],
+                      scoring_type: game.scoring_type || "Standard XP",
+                      duration: game.duration || "15 minutes",
+                      description: game.description || "Collegiate attraction stage.",
+                    })
+                  }
+                  className="w-full py-2.5 px-4 bg-white/10 hover:bg-fest-yellow hover:text-black text-white font-grotesk text-xs uppercase font-black tracking-wider rounded-xl border-2 border-white/20 hover:border-black transition-all flex items-center justify-center gap-1.5 shadow-[2px_2px_0px_#000] active:translate-y-0.5"
+                >
+                  <span>INSPECT STAGE RULES</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             );
           })}
         </div>
 
-        {/* Footer */}
+        {/* Modal: Interactive Rules Inspector */}
+        {selectedGameRules && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+            <div className="bg-white text-slate-900 border-4 border-black rounded-3xl max-w-lg w-full p-6 sm:p-8 retro-shadow-black relative">
+              <button
+                onClick={() => setSelectedGameRules(null)}
+                className="absolute top-4 right-4 p-2 rounded-xl bg-slate-100 hover:bg-black hover:text-white transition-colors"
+                title="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-grotesk text-[10px] uppercase font-black px-2.5 py-0.5 bg-fest-magenta text-white rounded">
+                  {selectedGameRules.stage}
+                </span>
+                <span className="font-grotesk text-[10px] uppercase font-bold text-slate-500">
+                  DURATION: {selectedGameRules.duration}
+                </span>
+              </div>
+
+              <h3 className="font-anton text-3xl uppercase tracking-tight text-black mb-3">
+                {selectedGameRules.name}
+              </h3>
+
+              <p className="font-sans text-sm text-slate-700 mb-5 leading-relaxed">
+                {selectedGameRules.description}
+              </p>
+
+              <h4 className="font-grotesk text-xs uppercase font-black tracking-wider text-black mb-2 flex items-center gap-1.5">
+                <span>OFFICIAL STAGE RULES & PROTOCOL</span>
+                <span className="text-fest-coral">●</span>
+              </h4>
+
+              <div className="space-y-2 mb-6 bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                {selectedGameRules.rules.map((rule, idx) => (
+                  <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-800 font-medium">
+                    <span className="w-5 h-5 rounded-full bg-fest-yellow text-black font-anton text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
+                      {idx + 1}
+                    </span>
+                    <span className="leading-snug">{rule}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/admin"
+                  className="flex-1 py-3 px-4 bg-fest-yellow hover:bg-fest-coral hover:text-white text-black font-anton text-base uppercase tracking-wider rounded-xl border-3 border-black retro-shadow-black transition-all text-center"
+                >
+                  SCORE THIS STAGE IN BOOTH ⚡
+                </Link>
+                <button
+                  onClick={() => setSelectedGameRules(null)}
+                  className="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-black font-grotesk text-xs uppercase font-black rounded-xl border-2 border-black transition-all"
+                >
+                  CLOSE
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <FooterStatus />
       </main>
     </div>

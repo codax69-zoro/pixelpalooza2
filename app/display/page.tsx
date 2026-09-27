@@ -14,11 +14,14 @@ import {
   VolumeX,
   Mic,
   Tent,
-  Sparkles
+  Sparkles,
+  Radio
 } from "lucide-react";
 import { useArena } from "@/lib/store/arena-context";
 import { soundFx } from "@/lib/audio/sound-fx";
 import { PixelBunting } from "@/components/PixelBunting";
+import { FestoonLights } from "@/components/FestoonLights";
+import { AnimatedCounter } from "@/components/AnimatedCounter";
 
 export default function ProjectorDisplayPage() {
   const { standings, activeGame, eventState, lastBroadcastEvent, teams, games, realtimeStatus } = useArena();
@@ -53,17 +56,21 @@ export default function ProjectorDisplayPage() {
     return `${team ? team.name.toUpperCase() : "SQUAD"} ${sign}${lastBroadcastEvent.points} XP 🎵 (${game ? game.name.toUpperCase() : "ARENA"})`;
   };
 
+  const top3 = standings.slice(0, 3);
+  const runnerUps = standings.slice(3, 10);
+
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-mono selection:bg-festival-pink selection:text-white relative overflow-hidden">
-      {/* Pixel Bunting Banner across top */}
+    <div className="min-h-screen bg-[#070A12] text-white flex flex-col font-sans selection:bg-fest-yellow selection:text-black relative overflow-hidden">
+      {/* Hanging Festoon Lights & Pixel Bunting Banner across top */}
+      <FestoonLights />
       <PixelBunting />
 
       {/* Top Projector Header Bar */}
-      <header className="bg-obsidian-950/90 border-b-2 border-voxel-border px-6 py-4 flex items-center justify-between shadow-stage-glow z-20">
+      <header className="bg-black/90 backdrop-blur-md border-b-2 border-white/20 px-6 py-4 flex items-center justify-between z-20">
         <div className="flex items-center gap-4">
           <Link
             href="/leaderboard"
-            className="p-2 bg-obsidian-900 border border-slate-700 hover:border-festival-pink text-slate-400 hover:text-white transition-all shadow-voxel-sm"
+            className="p-2.5 rounded-xl bg-white/10 border-2 border-white/20 hover:border-fest-yellow hover:text-fest-yellow text-slate-300 transition-all shadow-[2px_2px_0px_#000]"
             title="Exit Projector Mode to Main Leaderboard"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -71,35 +78,33 @@ export default function ProjectorDisplayPage() {
 
           <div>
             <div className="flex items-center gap-3">
-              <span className="text-2xl lg:text-3xl font-black tracking-wider text-white flex items-center gap-1.5">
-                <span>PIXELPALOOZA</span>
-                <span className="text-festival-pink">🎵</span>
+              <span className="font-anton text-2xl lg:text-3xl tracking-wider text-white uppercase flex items-center gap-1.5">
+                PIXELPALOOZA
+                <span className="text-xs font-grotesk px-2 py-0.5 bg-fest-coral text-white rounded font-black tracking-normal">
+                  ’25
+                </span>
               </span>
-              <div className="flex items-center gap-1.5 bg-festival-emerald/15 border border-festival-emerald px-3 py-0.5 text-xs font-bold text-festival-emerald">
-                <span className="w-2.5 h-2.5 rounded-full bg-festival-emerald animate-ping" />
-                <span>● FESTIVAL LIVE</span>
+              <div className="flex items-center gap-1.5 bg-emerald-950/80 border border-emerald-500/50 px-3 py-1 rounded-full text-xs font-grotesk font-black text-emerald-400">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>STAGE HUD ACTIVE</span>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs mt-0.5">
-              <span className="text-realm-gold font-bold italic">
-                &quot;Where ideas get Unhinged&quot; ✨
-              </span>
-              <span className="text-slate-600">·</span>
-              <span className="text-festival-cyan uppercase font-bold tracking-wider">
-                GDGOC · NMIMS NAVI MUMBAI
-              </span>
+            <div className="flex items-center gap-2 text-[11px] font-grotesk font-bold uppercase tracking-wider text-slate-400 mt-0.5">
+              <span className="text-fest-yellow">GDG ON CAMPUS</span>
+              <span>•</span>
+              <span>NMIMS NAVI MUMBAI</span>
             </div>
           </div>
         </div>
 
         {/* Center Current Game Banner */}
-        <div className="hidden md:flex flex-col items-center bg-obsidian-900 border-2 border-festival-pink px-6 py-2 shadow-festival-pink">
-          <span className="text-[10px] text-festival-pink uppercase font-black tracking-widest flex items-center gap-1">
-            <Mic className="w-3 h-3" />
-            <span>CURRENT ATTRACTION</span>
+        <div className="hidden md:flex flex-col items-center bg-black/80 border-2 border-fest-yellow px-6 py-2 rounded-2xl retro-shadow-yellow shadow-[4px_4px_0px_#FFE500]">
+          <span className="text-[10px] text-fest-yellow uppercase font-grotesk font-black tracking-widest flex items-center gap-1.5">
+            <Radio className="w-3.5 h-3.5 animate-pulse" />
+            <span>NOW ACTIVE ON STAGE</span>
           </span>
-          <span className="text-xl lg:text-2xl font-black text-white tracking-wide">
-            {activeGame ? `${activeGame.name.toUpperCase()} (${activeGame.attraction_stage?.toUpperCase() || "MAIN STAGE"})` : "TECH JEOPARDY"}
+          <span className="font-anton text-xl lg:text-2xl text-white tracking-wide uppercase">
+            {activeGame ? `${activeGame.name} (${activeGame.attraction_stage || "MAIN ARENA"})` : "TECH JEOPARDY"}
           </span>
         </div>
 
@@ -107,15 +112,15 @@ export default function ProjectorDisplayPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={toggleSound}
-            className="p-2.5 bg-obsidian-900 border border-slate-700 hover:border-festival-pink text-slate-300 hover:text-white transition-all"
+            className="p-2.5 rounded-xl bg-white/10 border-2 border-white/20 hover:border-white text-slate-300 hover:text-white transition-all shadow-[2px_2px_0px_#000]"
             title={muted ? "Unmute Audio" : "Mute Audio"}
           >
-            {muted ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5 text-festival-emerald" />}
+            {muted ? <VolumeX className="w-5 h-5 text-red-400" /> : <Volume2 className="w-5 h-5 text-fest-yellow" />}
           </button>
 
           <button
             onClick={toggleFullscreen}
-            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-festival-orange text-black font-black px-4 py-2 text-sm shadow-voxel-sm hover:brightness-110 transition-all active:translate-y-0.5"
+            className="flex items-center gap-2 bg-fest-yellow text-black font-anton px-4 py-2 text-sm uppercase tracking-wider rounded-xl border-2 border-black retro-shadow-black hover:bg-white transition-all active:translate-y-0.5"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             <span className="hidden sm:inline">{isFullscreen ? "EXIT FULLSCREEN" : "FULLSCREEN"}</span>
@@ -124,129 +129,130 @@ export default function ProjectorDisplayPage() {
       </header>
 
       {/* Main Projector Scoreboard Body */}
-      <main className="flex-1 flex flex-col justify-center max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 z-10">
+      <main className="flex-1 flex flex-col justify-center max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 z-10">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 text-realm-gold text-lg lg:text-xl font-bold tracking-widest uppercase mb-1">
-            <Trophy className="w-6 h-6 fill-realm-gold" />
-            <span>🏆 LIVE LEADERBOARD</span>
+          <div className="inline-flex items-center gap-2 font-grotesk text-xs uppercase font-black tracking-widest text-fest-yellow bg-yellow-950/60 border border-fest-yellow/40 px-4 py-1.5 rounded-full mb-2">
+            <Trophy className="w-4 h-4 text-fest-yellow" />
+            <span>CAMPUS AUDITORIUM MAIN DISPLAY</span>
           </div>
+          <h2 className="font-anton text-4xl sm:text-6xl uppercase tracking-tight text-white leading-none">
+            WHO&apos;S HEADLINING PIXELPALOOZA?
+          </h2>
         </div>
 
-        {/* High-visibility rows or Standby Banner */}
-        {standings.length === 0 ? (
-          <div className="border-2 border-slate-800 bg-obsidian-900/90 p-10 sm:p-14 text-center shadow-voxel relative overflow-hidden my-4">
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-festival-pink via-festival-cyan to-festival-emerald" />
-            <div className="w-20 h-20 bg-obsidian-950 border border-slate-700 mx-auto flex items-center justify-center text-realm-gold mb-4 shadow-inner">
-              <Trophy className="w-10 h-10 fill-realm-gold" />
-            </div>
-            <h3 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-wider mb-2">
-              STAGE PROJECTOR HUD ACTIVE
-            </h3>
-            <p className="text-sm sm:text-base text-slate-400 max-w-lg mx-auto leading-relaxed mb-4 font-mono">
-              Waiting for festival squads to register and score dispatches to begin. Realtime WebSocket sync is live and standing by.
-            </p>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-obsidian-950 border border-festival-pink text-festival-pink text-xs font-mono font-bold tracking-widest uppercase">
-              <span className="w-2 h-2 rounded-full bg-festival-pink animate-ping" />
-              <span>STAGE STANDBY // AUDIO &amp; VISUAL READY</span>
-            </div>
+        {/* Podium for Top 3 */}
+        {top3.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 items-end">
+            {/* 2nd Place Silver */}
+            {top3[1] && (
+              <div className="order-2 md:order-1 bg-white text-black border-4 border-black rounded-3xl p-6 retro-shadow-black text-center">
+                <span className="font-grotesk text-xs uppercase font-black px-3 py-1 rounded bg-slate-200 text-slate-800 border border-black mb-3 inline-block">
+                  #2 SILVER TIER
+                </span>
+                <h3 className="font-anton text-3xl sm:text-4xl uppercase tracking-tight truncate">
+                  {top3[1].team.name}
+                </h3>
+                <p className="font-grotesk text-xs uppercase font-bold text-slate-600 mb-3">
+                  CAPTAIN: {top3[1].team.captain}
+                </p>
+                <div className="font-anton text-5xl text-black">
+                  <AnimatedCounter value={top3[1].total_xp} /> <span className="text-xl">XP</span>
+                </div>
+              </div>
+            )}
+
+            {/* 1st Place Gold Headliner */}
+            {top3[0] && (
+              <div className="order-1 md:order-2 bg-fest-yellow text-black border-4 border-black rounded-3xl p-8 retro-shadow-black text-center md:-translate-y-4 ring-4 ring-yellow-400/50">
+                <div className="flex justify-center mb-2">
+                  <div className="w-12 h-12 rounded-full bg-black text-fest-yellow flex items-center justify-center border-2 border-black animate-bounce">
+                    <Crown className="w-6 h-6 fill-fest-yellow" />
+                  </div>
+                </div>
+                <span className="font-grotesk text-xs uppercase font-black px-3 py-1 rounded bg-black text-fest-yellow border border-black mb-3 inline-block shadow-[2px_2px_0px_#000]">
+                  #1 FESTIVAL HEADLINER
+                </span>
+                <h3 className="font-anton text-4xl sm:text-5xl uppercase tracking-tight truncate">
+                  {top3[0].team.name}
+                </h3>
+                <p className="font-grotesk text-sm uppercase font-black text-black/80 mb-4">
+                  CAPTAIN: {top3[0].team.captain}
+                </p>
+                <div className="font-anton text-6xl sm:text-7xl text-black">
+                  <AnimatedCounter value={top3[0].total_xp} /> <span className="text-2xl">XP</span>
+                </div>
+              </div>
+            )}
+
+            {/* 3rd Place Bronze */}
+            {top3[2] && (
+              <div className="order-3 bg-white text-black border-4 border-black rounded-3xl p-6 retro-shadow-black text-center">
+                <span className="font-grotesk text-xs uppercase font-black px-3 py-1 rounded bg-amber-100 text-amber-900 border border-black mb-3 inline-block">
+                  #3 BRONZE TIER
+                </span>
+                <h3 className="font-anton text-3xl sm:text-4xl uppercase tracking-tight truncate">
+                  {top3[2].team.name}
+                </h3>
+                <p className="font-grotesk text-xs uppercase font-bold text-slate-600 mb-3">
+                  CAPTAIN: {top3[2].team.captain}
+                </p>
+                <div className="font-anton text-5xl text-black">
+                  <AnimatedCounter value={top3[2].total_xp} /> <span className="text-xl">XP</span>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="space-y-3">
-            <AnimatePresence>
-              {standings.slice(0, 8).map((item, index) => {
-                const isFirst = index === 0;
-                const isSecond = index === 1;
-                const isThird = index === 2;
+          <div className="border-4 border-black bg-white text-black rounded-3xl p-10 text-center retro-shadow-black my-8">
+            <h3 className="font-anton text-3xl uppercase">AWAITING STAGE SCORING DISPATCHES</h3>
+            <p className="font-sans text-sm text-slate-600 mt-2">
+              Referees will begin scoring collegiate squads shortly across all 7 attractions.
+            </p>
+          </div>
+        )}
 
-                const medal = isFirst ? "🥇" : isSecond ? "🥈" : isThird ? "🥉" : `${index + 1}`;
-                const borderColor = isFirst
-                  ? "border-realm-gold shadow-festival-gold bg-obsidian-850"
-                  : isSecond
-                  ? "border-slate-400 bg-obsidian-900"
-                  : isThird
-                  ? "border-amber-700 bg-obsidian-900"
-                  : "border-slate-800 bg-obsidian-950";
-
-                const textColor = isFirst
-                  ? "text-festival-emerald"
-                  : isSecond
-                  ? "text-slate-100"
-                  : isThird
-                  ? "text-amber-200"
-                  : "text-slate-300";
-
-                const xpColor = isFirst
-                  ? "text-realm-gold"
-                  : isSecond
-                  ? "text-white"
-                  : isThird
-                  ? "text-amber-300"
-                  : "text-slate-200";
-
-                return (
-                  <motion.div
-                    key={item.team.id}
-                    layout
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.35 }}
-                    className={`border-2 p-3 sm:p-4 flex items-center justify-between transition-all ${borderColor}`}
-                  >
-                    {/* Left: Medal / Rank & Team Name */}
-                    <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-                      <span className="text-2xl sm:text-3xl font-black w-10 text-center shrink-0">
-                        {medal}
-                      </span>
-
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xl sm:text-2xl lg:text-3xl font-black uppercase tracking-wider truncate flex items-center gap-1.5 ${textColor}`}>
-                            <span>{item.team.name}</span>
-                            <span>{item.team.music_icon || "🎵"}</span>
-                          </span>
-                          {isFirst && (
-                            <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-black bg-gradient-to-r from-realm-gold to-festival-pink text-black px-2 py-0.5">
-                              <Crown className="w-3 h-3 fill-current" />
-                              HEADLINER
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-slate-400 tracking-wider">
-                          CAPTAIN: {item.team.captain.toUpperCase()} • {item.games_played} STAGES PLAYED
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right: Score Total */}
-                    <div className="flex items-baseline gap-2 shrink-0">
-                      <span className={`text-2xl sm:text-3xl lg:text-4xl font-black font-mono tracking-tight ${xpColor}`}>
-                        {item.total_xp}
-                      </span>
-                      <span className="text-sm sm:text-base font-bold text-slate-400">XP</span>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+        {/* Undercard Grid for Ranks 4-10 */}
+        {runnerUps.length > 0 && (
+          <div className="bg-black/80 border-4 border-black rounded-3xl p-6 retro-shadow-black">
+            <h4 className="font-grotesk text-xs uppercase font-black tracking-widest text-slate-400 mb-4 border-b border-white/20 pb-2">
+              RUNNER-UP SQUADS // AUDITORIUM TRACKER
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {runnerUps.map((s) => (
+                <div
+                  key={s.team.id}
+                  className="bg-white/10 border-2 border-white/20 rounded-xl p-3 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-anton text-lg text-fest-yellow">#{s.rank}</span>
+                    <span className="font-anton text-base text-white uppercase truncate max-w-[110px]">
+                      {s.team.name}
+                    </span>
+                  </div>
+                  <span className="font-anton text-lg text-fest-cyan">
+                    <AnimatedCounter value={s.total_xp} /> XP
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </main>
 
-      {/* Bottom Large Ticker */}
-      <footer className="bg-obsidian-950 border-t-2 border-voxel-border px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm z-20">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-festival-pink animate-pulse" />
-          <span className="text-slate-400 uppercase tracking-widest font-bold text-xs">
-            LAST UPDATE:
+      {/* Bottom Live Feed Marquee */}
+      <footer className="bg-black/90 border-t-2 border-white/20 py-3 px-6 flex items-center justify-between text-xs z-20">
+        <div className="flex items-center gap-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-fest-pink animate-ping" />
+          <span className="font-grotesk text-xs uppercase font-bold text-fest-yellow">
+            LATEST STAGE TRANSMISSION:
           </span>
-          <span className="text-festival-emerald font-black text-base sm:text-lg tracking-wide">
+          <span className="font-sans text-slate-300 font-medium">
             {getLastUpdateText()}
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <Wifi className="w-4 h-4 text-festival-emerald" />
-          <span>PROJECTOR SYNC: REALTIME ACTIVE</span>
+        <div className="hidden sm:flex items-center gap-2 font-grotesk text-[11px] font-bold text-slate-400">
+          <span>REALTIME WEBSOCKET: {realtimeStatus.toUpperCase()}</span>
         </div>
       </footer>
     </div>

@@ -78,14 +78,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | **Auditorium Projector HUD** | `http://localhost:3000/display` | Stage projector in the auditorium |
 | **Attractions Hub** | `http://localhost:3000/games` | Game descriptions & festival rules |
 | **Control Booth** | `http://localhost:3000/admin` | Organizers & referee score entry |
-| **Admin Login** | `http://localhost:3000/admin/login` | Private Master Passkey: `GDGPixelpalooza123` |
+| **Admin Login** | `http://localhost:3000/admin/login` | Secure Organizer Passcode Entry |
 
 ---
 
 ## 📋 Loading Your Fest Teams During the Event
 
 ### Method A: Bulk CSV Import (Fastest)
-1. Go to `/admin` and log in with passcode `GDGPixelpalooza123`.
+1. Go to `/admin` and log in with the private organizer passcode.
 2. In the right panel under **FESTIVAL SQUADS**, click **[+ BULK IMPORT SQUADS (CSV)]**.
 3. Paste your team list in the format:
    ```csv
@@ -112,7 +112,7 @@ If organizers are scoring from different smartphones across different campus WiF
    ```env
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   NEXT_PUBLIC_ORGANIZER_ACCESS_CODE=GDGPixelpalooza123
+   ORGANIZER_PASSCODE_HASH=64df054a478c31e62514c51b6bbf3f5a52f0341addcc7e2e14f1c1d938b71aba
    ```
 5. Deploy to Vercel or run `npm run build && npm run start`. All connected devices will synchronize in real-time via WebSockets!
 
