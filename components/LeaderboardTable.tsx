@@ -10,14 +10,15 @@ import {
   Filter, 
   Grid,
   PenTool,
-  Bug,
   Clock,
   Bot,
   Trophy,
   Zap,
-  Mic,
-  Radio,
-  Users
+  Music,
+  Users,
+  Coins,
+  Gavel,
+  Crown
 } from "lucide-react";
 import { TeamStanding, Game } from "@/types/arena";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
@@ -25,46 +26,63 @@ import { AnimatedCounter } from "@/components/AnimatedCounter";
 interface LeaderboardTableProps {
   standings: TeamStanding[];
   games: Game[];
+  initialTab?: "day1" | "day2" | "overall";
 }
 
-export function LeaderboardTable({ standings, games }: LeaderboardTableProps) {
+export function LeaderboardTable({ standings, games, initialTab = "overall" }: LeaderboardTableProps) {
+  const [activeTab, setActiveTab] = useState<"day1" | "day2" | "overall">(initialTab);
   const [selectedGameFilter, setSelectedGameFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"score" | "games" | "streak">("score");
+  const [sortBy, setSortBy] = useState<"score" | "wallet" | "games">("score");
 
-  // Filter and sort
+  // Filter and sort based on active tab
   const filteredStandings = useMemo(() => {
     let result = [...standings];
 
-    if (selectedGameFilter !== "all") {
-      result = result.map((item) => {
-        const gameXp = item.game_breakdown[selectedGameFilter] || 0;
-        return {
+    if (activeTab === "day1") {
+      if (selectedGameFilter !== "all") {
+        result = result.map((item) => ({
           ...item,
-          total_xp: gameXp,
-        };
-      });
+          day1_score: item.game_breakdown[selectedGameFilter] || 0,
+        }));
+      }
+      if (sortBy === "score") {
+        result.sort((a, b) => b.day1_score - a.day1_score || b.current_wallet - a.current_wallet);
+      } else if (sortBy === "wallet") {
+        result.sort((a, b) => b.current_wallet - a.current_wallet || b.day1_score - a.day1_score);
+      } else if (sortBy === "games") {
+        result.sort((a, b) => b.games_played - a.games_played || b.day1_score - a.day1_score);
+      }
+      return result.map((s, idx) => ({ ...s, rank: idx + 1 }));
+    } else if (activeTab === "day2") {
+      if (sortBy === "score") {
+        result.sort((a, b) => b.day2_score - a.day2_score || b.questions_won - a.questions_won);
+      } else if (sortBy === "wallet") {
+        result.sort((a, b) => b.current_wallet - a.current_wallet || b.day2_score - a.day2_score);
+      } else if (sortBy === "games") {
+        result.sort((a, b) => b.questions_won - a.questions_won || b.day2_score - a.day2_score);
+      }
+      return result.map((s, idx) => ({ ...s, rank: idx + 1 }));
+    } else {
+      // Overall
+      if (sortBy === "score") {
+        result.sort((a, b) => b.total_score - a.total_score || b.current_wallet - a.current_wallet);
+      } else if (sortBy === "wallet") {
+        result.sort((a, b) => b.current_wallet - a.current_wallet || b.total_score - a.total_score);
+      } else if (sortBy === "games") {
+        result.sort((a, b) => b.games_played - a.games_played || b.total_score - a.total_score);
+      }
+      return result.map((s, idx) => ({ ...s, rank: idx + 1 }));
     }
-
-    if (sortBy === "score") {
-      result.sort((a, b) => b.total_xp - a.total_xp);
-    } else if (sortBy === "games") {
-      result.sort((a, b) => b.games_played - a.games_played);
-    } else if (sortBy === "streak") {
-      result.sort((a, b) => b.streak - a.streak);
-    }
-
-    return result;
-  }, [standings, selectedGameFilter, sortBy]);
+  }, [standings, activeTab, selectedGameFilter, sortBy]);
 
   const getGameIcon = (slug: string) => {
     switch (slug) {
-      case "tech-tambola": return Grid;
+      case "balloon-cup-tower": return Trophy;
+      case "gdg-logo-puzzle": return Grid;
       case "tech-pictionary": return PenTool;
-      case "debug-the-code": return Bug;
-      case "tech-bomb-defusal": return Clock;
+      case "tech-tambola": return Music;
       case "ai-or-human": return Bot;
-      case "tech-jeopardy": return Mic;
-      case "code-relay": return Zap;
+      case "tech-auction": return Zap;
       default: return Trophy;
     }
   };
@@ -80,113 +98,158 @@ export function LeaderboardTable({ standings, games }: LeaderboardTableProps) {
 
   return (
     <div className="w-full my-8">
-      {/* Filter and Sort Controls Bar */}
-      <div className="bg-obsidian-900 border border-voxel-border p-3 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-voxel-sm">
-        {/* Game Filters */}
-        <div className="flex items-center gap-1.5 flex-wrap overflow-x-auto text-xs font-mono">
-          <span className="text-[10px] text-slate-500 uppercase tracking-widest mr-1 flex items-center gap-1">
-            <Filter className="w-3 h-3 text-festival-pink" />
-            ATTRACTION:
+      {/* 2-Day Tab Selectors in Stitch Festival Style */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2 bg-black/60 p-1.5 rounded-2xl border-2 border-white/20 retro-shadow-black">
+          <button
+            onClick={() => { setActiveTab("day1"); setSelectedGameFilter("all"); }}
+            className={`px-5 py-2.5 rounded-xl font-anton text-sm uppercase tracking-wider transition-all flex items-center gap-2 ${
+              activeTab === "day1"
+                ? "bg-fest-yellow text-black shadow-[2px_2px_0px_#000]"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Trophy className="w-4 h-4" />
+            DAY 1 (5 GAMES)
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("day2"); setSelectedGameFilter("all"); }}
+            className={`px-5 py-2.5 rounded-xl font-anton text-sm uppercase tracking-wider transition-all flex items-center gap-2 ${
+              activeTab === "day2"
+                ? "bg-fest-cyan text-black shadow-[2px_2px_0px_#000]"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Gavel className="w-4 h-4" />
+            DAY 2 (THE AUCTION)
+          </button>
+
+          <button
+            onClick={() => { setActiveTab("overall"); setSelectedGameFilter("all"); }}
+            className={`px-5 py-2.5 rounded-xl font-anton text-sm uppercase tracking-wider transition-all flex items-center gap-2 ${
+              activeTab === "overall"
+                ? "bg-fest-coral text-white shadow-[2px_2px_0px_#000]"
+                : "text-slate-400 hover:text-white"
+            }`}
+          >
+            <Crown className="w-4 h-4" />
+            OVERALL TOURNAMENT
+          </button>
+        </div>
+
+        {/* Sort Select */}
+        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl text-xs font-mono">
+          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">SORT BY:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as "score" | "wallet" | "games")}
+            className="bg-black text-fest-yellow font-grotesk text-xs uppercase font-bold px-2 py-1 rounded border border-slate-700 focus:outline-none"
+          >
+            <option value="score">HIGHEST SCORE ▼</option>
+            <option value="wallet">SPENDABLE WALLET ▼</option>
+            <option value="games">{activeTab === "day2" ? "QUESTIONS WON" : "GAMES PLAYED"}</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Day 1 Specific Sub-Attraction Filters */}
+      {activeTab === "day1" && (
+        <div className="bg-slate-900/80 border border-slate-800 p-3 mb-4 rounded-2xl flex flex-wrap items-center gap-2 shadow-voxel-sm">
+          <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mr-1 flex items-center gap-1">
+            <Filter className="w-3 h-3 text-fest-yellow" />
+            FILTER ATTRACTION:
           </span>
 
           <button
             onClick={() => setSelectedGameFilter("all")}
-            className={`px-2.5 py-1 text-xs font-bold transition-all ${
+            className={`px-3 py-1 rounded-lg text-xs font-anton uppercase transition-all ${
               selectedGameFilter === "all"
-                ? "bg-festival-pink text-white font-black shadow-festival-pink"
-                : "bg-obsidian-950 text-slate-300 hover:text-white border border-slate-800"
+                ? "bg-fest-yellow text-black"
+                : "bg-black/60 text-slate-400 hover:text-white border border-slate-800"
             }`}
           >
-            ALL STAGES
+            ALL 5 GAMES
           </button>
 
-          {games.map((g) => {
+          {games.filter((g) => g.day === 1 && g.active).map((g) => {
             const isSelected = selectedGameFilter === g.id;
             const Icon = getGameIcon(g.slug);
             return (
               <button
                 key={g.id}
                 onClick={() => setSelectedGameFilter(g.id)}
-                className={`px-2 py-1 text-xs font-medium transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-lg text-xs font-anton uppercase flex items-center gap-1.5 transition-all ${
                   isSelected
-                    ? "bg-festival-pink text-white font-bold shadow-festival-pink"
-                    : "bg-obsidian-950 text-slate-400 hover:text-slate-200 border border-slate-800"
+                    ? "bg-fest-cyan text-black"
+                    : "bg-black/60 text-slate-400 hover:text-white border border-slate-800"
                 }`}
               >
                 <Icon className="w-3 h-3" />
-                <span className="truncate max-w-[130px]">{g.name}</span>
+                <span>{g.name}</span>
               </button>
             );
           })}
         </div>
-
-        {/* Sort Select */}
-        <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-[10px] text-slate-500 uppercase tracking-widest">SORT:</span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as "score" | "games" | "streak")}
-            className="bg-obsidian-950 border border-slate-700 text-festival-cyan px-2 py-1 text-xs font-mono focus:outline-none focus:border-festival-pink cursor-pointer"
-          >
-            <option value="score">HIGHEST SCORE ▼</option>
-            <option value="games">STAGES PLAYED</option>
-            <option value="streak">ACTIVE STREAK</option>
-          </select>
-        </div>
-      </div>
+      )}
 
       {/* Main Leaderboard Table */}
-      <div className="voxel-card border-2 border-voxel-border overflow-hidden shadow-voxel">
+      <div className="bg-slate-900/90 border-4 border-black rounded-3xl overflow-hidden retro-shadow-black">
         {filteredStandings.length === 0 ? (
-          /* Atmospheric Pre-Game Standby Card */
-          <div className="p-12 text-center bg-obsidian-950/80">
-            <div className="w-12 h-12 bg-obsidian-900 border border-slate-800 mx-auto flex items-center justify-center text-festival-cyan mb-3">
+          <div className="p-12 text-center bg-black/40">
+            <div className="w-12 h-12 bg-slate-800 rounded-2xl mx-auto flex items-center justify-center text-fest-yellow mb-3">
               <Users className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white uppercase tracking-wider mb-1">
-              ARENA SCORING GRID STANDING BY
+            <h3 className="font-anton text-xl text-white uppercase tracking-wider mb-1">
+              FESTIVAL ARENA SCORING GRID STANDING BY
             </h3>
-            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed mb-4">
-              No squads or scores have been dispatched yet. Registered teams will appear on this live grid as soon as organizers dispatch points.
+            <p className="font-sans text-xs text-slate-400 max-w-md mx-auto leading-relaxed mb-4">
+              Registered squads will appear here in real-time as organizers record scores and game participation.
             </p>
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-2 px-3 py-1.5 bg-festival-pink text-white font-bold text-xs uppercase tracking-wider shadow-festival-pink hover:bg-pink-600 transition-all"
-            >
-              <span>ORGANIZER CONTROL BOOTH</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left font-mono border-collapse">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-obsidian-950 border-b border-voxel-border text-[10px] tracking-widest uppercase text-slate-400">
-                  <th className="py-3 px-4 w-16">RANK</th>
-                  <th className="py-3 px-4">SQUAD & CAPTAIN</th>
-                  <th className="py-3 px-4 hidden sm:table-cell">STAGES PLAYED</th>
-                  <th className="py-3 px-4 hidden md:table-cell">LAST DISPATCH</th>
-                  <th className="py-3 px-4 text-right">TOTAL SCORE (XP)</th>
-                  <th className="py-3 px-4 text-center hidden lg:table-cell">STREAK</th>
-                  <th className="py-3 px-4 text-right">ACTION</th>
+                <tr className="bg-black/80 border-b-2 border-white/10 font-grotesk text-xs uppercase text-slate-400 tracking-wider">
+                  <th className="py-4 px-4 w-16 text-center">RANK</th>
+                  <th className="py-4 px-4">SQUAD</th>
+                  <th className="py-4 px-4 text-right">SPENDABLE WALLET</th>
+                  {activeTab === "day1" && (
+                    <>
+                      <th className="py-4 px-4 text-center">DAY 1 GAMES</th>
+                      <th className="py-4 px-4 text-right">DAY 1 SCORE</th>
+                    </>
+                  )}
+                  {activeTab === "day2" && (
+                    <>
+                      <th className="py-4 px-4 text-center">QUESTIONS WON</th>
+                      <th className="py-4 px-4 text-right">AUCTION SCORE</th>
+                    </>
+                  )}
+                  {activeTab === "overall" && (
+                    <>
+                      <th className="py-4 px-4 text-center">GAMES PLAYED</th>
+                      <th className="py-4 px-4 text-right">DAY 1 PTS</th>
+                      <th className="py-4 px-4 text-right">DAY 2 PTS</th>
+                      <th className="py-4 px-4 text-right font-black text-white">OVERALL SCORE</th>
+                    </>
+                  )}
+                  <th className="py-4 px-4 text-right">DOSSIER</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/80">
+              <tbody className="divide-y divide-white/5 font-sans">
                 <AnimatePresence>
                   {filteredStandings.map((item, index) => {
-                    const rankNumber = String(index + 1).padStart(2, "0");
-                    const isTop3 = index < 3;
-                    const rankColor =
-                      index === 0
-                        ? "text-festival-emerald border-realm-gold"
-                        : index === 1
-                        ? "text-slate-200 border-slate-400"
-                        : index === 2
-                        ? "text-amber-400 border-amber-600"
-                        : "text-slate-400 border-slate-700";
-
-                    const maxPossibleXp = 1000;
-                    const xpPercent = Math.min(100, Math.round((item.total_xp / maxPossibleXp) * 100));
+                    const isPodium = item.rank <= 3;
+                    const rankBadgeColor =
+                      item.rank === 1
+                        ? "bg-fest-yellow text-black border-2 border-black"
+                        : item.rank === 2
+                        ? "bg-slate-200 text-black border-2 border-black"
+                        : item.rank === 3
+                        ? "bg-amber-600 text-white border-2 border-black"
+                        : "bg-slate-800 text-slate-300";
 
                     return (
                       <motion.tr
@@ -195,111 +258,108 @@ export function LeaderboardTable({ standings, games }: LeaderboardTableProps) {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className={`hover:bg-obsidian-850/90 transition-colors group ${
-                          isTop3 ? "bg-obsidian-900/60" : "bg-obsidian-950/40"
+                        className={`transition-colors hover:bg-white/5 ${
+                          isPodium ? "bg-white/[0.02]" : ""
                         }`}
                       >
                         {/* Rank */}
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <div className="flex items-center gap-1.5">
-                            <span className={`text-base font-bold font-mono ${rankColor}`}>
-                              {rankNumber}
-                            </span>
-                            {index < 2 && item.total_xp > 0 && (
-                              <span className="text-[10px] text-festival-emerald flex items-center font-bold">
-                                <ArrowUp className="w-2.5 h-2.5" />
-                                <span className="text-[8px]">1</span>
-                              </span>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Squad & Captain */}
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 bg-obsidian-950 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 group-hover:border-festival-pink transition-colors shrink-0">
-                              {item.team.music_icon || getTeamInitials(item.team.name)}
-                            </div>
-                            <div>
-                              <div className="text-sm font-bold text-white uppercase tracking-wider group-hover:text-festival-pink transition-colors flex items-center gap-1.5">
-                                <span>{item.team.name}</span>
-                              </div>
-                              <div className="text-[11px] text-slate-400 font-mono">
-                                CAPTAIN: {item.team.captain.toUpperCase()}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Stages Played */}
-                        <td className="py-3 px-4 whitespace-nowrap hidden sm:table-cell">
-                          <span className="inline-block px-2 py-0.5 bg-obsidian-950 border border-slate-800 text-xs text-slate-300">
-                            {item.games_played} / 7 STAGES
+                        <td className="py-4 px-4 text-center">
+                          <span
+                            className={`inline-flex items-center justify-center w-8 h-8 rounded-xl font-anton text-sm ${rankBadgeColor} shadow-[2px_2px_0px_#000]`}
+                          >
+                            {item.rank}
                           </span>
                         </td>
 
-                        {/* Last Dispatch */}
-                        <td className="py-3 px-4 whitespace-nowrap hidden md:table-cell">
-                          {item.last_score_delta !== undefined ? (
-                            <div className="flex flex-col">
-                              <span
-                                className={`text-xs font-bold px-1.5 py-0.5 inline-block w-fit ${
-                                  item.last_score_delta >= 0
-                                    ? "bg-festival-emerald/15 text-festival-emerald border border-festival-emerald/30"
-                                    : "bg-festival-redstone/15 text-festival-redstone border border-festival-redstone/30"
-                                }`}
-                              >
-                                {item.last_score_delta >= 0 ? "+" : ""}
-                                {item.last_score_delta} XP 🎵 {item.last_score_type === "PENALTY" ? "PENALTY" : ""}
-                              </span>
-                              <span className="text-[10px] text-slate-400 uppercase mt-0.5">
-                                {item.last_game_name || "Special"}
+                        {/* Squad Name & Captain */}
+                        <td className="py-4 px-4">
+                          <Link
+                            href={`/teams/${item.team.id}`}
+                            className="group flex items-center gap-3"
+                          >
+                            <div className="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center font-anton text-sm text-fest-yellow group-hover:scale-105 transition-transform">
+                              {getTeamInitials(item.team.name)}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-anton text-lg uppercase tracking-wide text-white group-hover:text-fest-yellow transition-colors">
+                                  {item.team.name}
+                                </span>
+                                {item.rank === 1 && (
+                                  <Crown className="w-4 h-4 text-fest-yellow inline-block animate-bounce" />
+                                )}
+                              </div>
+                              <span className="font-sans text-xs text-slate-400 block">
+                                Lead: {item.team.captain}
                               </span>
                             </div>
-                          ) : (
-                            <span className="text-xs text-slate-600">—</span>
-                          )}
+                          </Link>
                         </td>
 
-                        {/* Total Score (XP) */}
-                        <td className="py-3 px-4 text-right whitespace-nowrap">
-                          <div className="flex flex-col items-end">
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-base font-bold text-white group-hover:text-festival-emerald transition-colors">
-                                <AnimatedCounter value={item.total_xp} />
-                              </span>
-                              <span className="text-[11px] text-slate-400 font-semibold">XP</span>
-                            </div>
-                            <div className="w-20 h-1 bg-obsidian-950 border border-slate-800 mt-1 overflow-hidden">
-                              <div
-                                className="h-full bg-festival-emerald"
-                                style={{ width: `${xpPercent}%` }}
-                              />
-                            </div>
+                        {/* Available Wallet */}
+                        <td className="py-4 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <Coins className="w-3.5 h-3.5 text-fest-yellow" />
+                            <span className="font-anton text-lg text-fest-yellow">
+                              <AnimatedCounter value={item.current_wallet} />
+                            </span>
+                            <span className="text-[10px] font-grotesk text-slate-400">PTS</span>
                           </div>
                         </td>
 
-                        {/* Streak */}
-                        <td className="py-3 px-4 text-center whitespace-nowrap hidden lg:table-cell">
-                          {item.streak > 0 ? (
-                            <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-400">
-                              <Flame className="w-3.5 h-3.5 fill-current" />
-                              <span>{item.streak}</span>
-                            </span>
-                          ) : (
-                            <span className="text-xs text-slate-600">0</span>
-                          )}
-                        </td>
+                        {/* Tab-dependent columns */}
+                        {activeTab === "day1" && (
+                          <>
+                            <td className="py-4 px-4 text-center font-anton text-base text-fest-cyan">
+                              {item.games_played} / 5
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                              <span className="font-anton text-2xl text-white">
+                                <AnimatedCounter value={item.day1_score} />
+                              </span>
+                            </td>
+                          </>
+                        )}
 
-                        {/* Action */}
-                        <td className="py-3 px-4 text-right whitespace-nowrap">
+                        {activeTab === "day2" && (
+                          <>
+                            <td className="py-4 px-4 text-center font-anton text-base text-fest-pink">
+                              {item.questions_won} WON
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                              <span className="font-anton text-2xl text-fest-pink">
+                                <AnimatedCounter value={item.day2_score} />
+                              </span>
+                            </td>
+                          </>
+                        )}
+
+                        {activeTab === "overall" && (
+                          <>
+                            <td className="py-4 px-4 text-center font-anton text-sm text-slate-300">
+                              {item.games_played} Games
+                            </td>
+                            <td className="py-4 px-4 text-right font-anton text-sm text-slate-400">
+                              {item.day1_score}
+                            </td>
+                            <td className="py-4 px-4 text-right font-anton text-sm text-fest-pink">
+                              {item.day2_score}
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                              <span className="font-anton text-3xl text-fest-yellow tracking-tight">
+                                <AnimatedCounter value={item.total_score} />
+                              </span>
+                            </td>
+                          </>
+                        )}
+
+                        {/* Link to Dossier */}
+                        <td className="py-4 px-4 text-right">
                           <Link
                             href={`/teams/${item.team.id}`}
-                            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-festival-pink transition-colors font-semibold"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-white/10 hover:bg-fest-yellow hover:text-black rounded-lg text-xs font-grotesk uppercase font-bold text-white transition-colors"
                           >
-                            <span className="hidden xl:inline">Squad Breakdown</span>
-                            <span className="xl:hidden">Details</span>
+                            DOSSIER
                             <ChevronRight className="w-3.5 h-3.5" />
                           </Link>
                         </td>
@@ -309,24 +369,6 @@ export function LeaderboardTable({ standings, games }: LeaderboardTableProps) {
                 </AnimatePresence>
               </tbody>
             </table>
-          </div>
-        )}
-
-        {/* Table Footer */}
-        {filteredStandings.length > 0 && (
-          <div className="bg-obsidian-950 border-t border-voxel-border px-4 py-3 flex items-center justify-between text-xs font-mono text-slate-400">
-            <div>
-              DISPLAYING ACTIVE QUALIFIERS (RANKS 01 - {String(filteredStandings.length).padStart(2, "0")} OF {standings.length} SQUADS)
-            </div>
-            <div className="flex items-center gap-1">
-              <button className="px-2 py-0.5 bg-obsidian-900 border border-slate-800 text-slate-400 hover:text-white disabled:opacity-40" disabled>
-                PREV
-              </button>
-              <span className="px-2 py-0.5 bg-festival-pink text-white font-bold">1</span>
-              <button className="px-2 py-0.5 bg-obsidian-900 border border-slate-800 text-slate-400 hover:text-white disabled:opacity-40" disabled>
-                NEXT
-              </button>
-            </div>
           </div>
         )}
       </div>

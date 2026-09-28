@@ -8,14 +8,12 @@ import {
   Maximize2, 
   Minimize2, 
   ArrowLeft, 
-  Wifi, 
   Crown,
   Volume2,
   VolumeX,
-  Mic,
-  Tent,
-  Sparkles,
-  Radio
+  Radio,
+  Coins,
+  Gavel
 } from "lucide-react";
 import { useArena } from "@/lib/store/arena-context";
 import { soundFx } from "@/lib/audio/sound-fx";
@@ -24,7 +22,18 @@ import { FestoonLights } from "@/components/FestoonLights";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 
 export default function ProjectorDisplayPage() {
-  const { standings, activeGame, eventState, lastBroadcastEvent, teams, games, realtimeStatus } = useArena();
+  const { 
+    overallStandings, 
+    day1Standings, 
+    day2Standings, 
+    activeGame, 
+    eventState, 
+    lastBroadcastEvent, 
+    teams, 
+    games, 
+    activeAuctionQuestion,
+    realtimeStatus 
+  } = useArena();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [muted, setMuted] = useState(soundFx.getIsMuted());
 
@@ -53,11 +62,12 @@ export default function ProjectorDisplayPage() {
     const team = teams.find((t) => t.id === lastBroadcastEvent.team_id);
     const game = games.find((g) => g.id === lastBroadcastEvent.game_id);
     const sign = lastBroadcastEvent.points >= 0 ? "+" : "";
-    return `${team ? team.name.toUpperCase() : "SQUAD"} ${sign}${lastBroadcastEvent.points} XP 🎵 (${game ? game.name.toUpperCase() : "ARENA"})`;
+    return `${team ? team.name.toUpperCase() : "SQUAD"} ${sign}${lastBroadcastEvent.points} PTS (${game ? game.name.toUpperCase() : "ARENA"})`;
   };
 
-  const top3 = standings.slice(0, 3);
-  const runnerUps = standings.slice(3, 10);
+  const currentStandings = eventState.current_day === 1 ? day1Standings : overallStandings;
+  const top3 = currentStandings.slice(0, 3);
+  const runnerUps = currentStandings.slice(3, 10);
 
   return (
     <div className="min-h-screen bg-[#070A12] text-white flex flex-col font-sans selection:bg-fest-yellow selection:text-black relative overflow-hidden">
@@ -86,7 +96,7 @@ export default function ProjectorDisplayPage() {
               </span>
               <div className="flex items-center gap-1.5 bg-emerald-950/80 border border-emerald-500/50 px-3 py-1 rounded-full text-xs font-grotesk font-black text-emerald-400">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>STAGE HUD ACTIVE</span>
+                <span>STAGE HUD • DAY {eventState.current_day}</span>
               </div>
             </div>
             <div className="flex items-center gap-2 text-[11px] font-grotesk font-bold uppercase tracking-wider text-slate-400 mt-0.5">
@@ -97,14 +107,16 @@ export default function ProjectorDisplayPage() {
           </div>
         </div>
 
-        {/* Center Current Game Banner */}
+        {/* Center Current Game / Auction Banner */}
         <div className="hidden md:flex flex-col items-center bg-black/80 border-2 border-fest-yellow px-6 py-2 rounded-2xl retro-shadow-yellow shadow-[4px_4px_0px_#FFE500]">
           <span className="text-[10px] text-fest-yellow uppercase font-grotesk font-black tracking-widest flex items-center gap-1.5">
             <Radio className="w-3.5 h-3.5 animate-pulse" />
-            <span>NOW ACTIVE ON STAGE</span>
+            <span>NOW ACTIVE ON MAIN STAGE</span>
           </span>
           <span className="font-anton text-xl lg:text-2xl text-white tracking-wide uppercase">
-            {activeGame ? `${activeGame.name} (${activeGame.attraction_stage || "MAIN ARENA"})` : "TECH JEOPARDY"}
+            {eventState.current_day === 1 
+              ? (activeGame ? `${activeGame.name}` : "DAY 1 ARENA ATTRACTIONS")
+              : (activeAuctionQuestion ? `THE AUCTION • Q#${activeAuctionQuestion.question_number} (${activeAuctionQuestion.category})` : "DAY 2: TECH AUCTION")}
           </span>
         </div>
 
@@ -136,7 +148,7 @@ export default function ProjectorDisplayPage() {
             <span>CAMPUS AUDITORIUM MAIN DISPLAY</span>
           </div>
           <h2 className="font-anton text-4xl sm:text-6xl uppercase tracking-tight text-white leading-none">
-            WHO&apos;S HEADLINING PIXELPALOOZA?
+            {eventState.event_status === "FINISHED" ? "PIXELPALOOZA CHAMPIONS" : "WHO'S HEADLINING PIXELPALOOZA?"}
           </h2>
         </div>
 
@@ -156,30 +168,34 @@ export default function ProjectorDisplayPage() {
                   CAPTAIN: {top3[1].team.captain}
                 </p>
                 <div className="font-anton text-5xl text-black">
-                  <AnimatedCounter value={top3[1].total_xp} /> <span className="text-xl">XP</span>
+                  <AnimatedCounter value={eventState.current_day === 1 ? top3[1].day1_score : top3[1].total_score} /> <span className="text-xl">PTS</span>
+                </div>
+                <div className="mt-2 text-xs font-grotesk font-bold text-slate-600">
+                  Wallet: {top3[1].current_wallet} pts • {top3[1].games_played} Games
                 </div>
               </div>
             )}
 
-            {/* 1st Place Gold Headliner */}
+            {/* 1st Place Gold (Center Elevated) */}
             {top3[0] && (
-              <div className="order-1 md:order-2 bg-fest-yellow text-black border-4 border-black rounded-3xl p-8 retro-shadow-black text-center md:-translate-y-4 ring-4 ring-yellow-400/50">
-                <div className="flex justify-center mb-2">
-                  <div className="w-12 h-12 rounded-full bg-black text-fest-yellow flex items-center justify-center border-2 border-black animate-bounce">
-                    <Crown className="w-6 h-6 fill-fest-yellow" />
-                  </div>
+              <div className="order-1 md:order-2 bg-fest-yellow text-black border-4 border-black rounded-3xl p-8 retro-shadow-black text-center md:-mt-4 relative overflow-hidden">
+                <div className="absolute top-3 right-3">
+                  <Crown className="w-8 h-8 fill-black animate-bounce" />
                 </div>
-                <span className="font-grotesk text-xs uppercase font-black px-3 py-1 rounded bg-black text-fest-yellow border border-black mb-3 inline-block shadow-[2px_2px_0px_#000]">
-                  #1 FESTIVAL HEADLINER
+                <span className="font-grotesk text-xs uppercase font-black px-4 py-1.5 rounded-full bg-black text-white mb-3 inline-block shadow-[2px_2px_0px_#FFE500]">
+                  #1 HEADLINER GOLD
                 </span>
-                <h3 className="font-anton text-4xl sm:text-5xl uppercase tracking-tight truncate">
+                <h3 className="font-anton text-4xl sm:text-5xl uppercase tracking-tight truncate my-1">
                   {top3[0].team.name}
                 </h3>
-                <p className="font-grotesk text-sm uppercase font-black text-black/80 mb-4">
+                <p className="font-grotesk text-xs uppercase font-bold text-black/80 mb-4">
                   CAPTAIN: {top3[0].team.captain}
                 </p>
-                <div className="font-anton text-6xl sm:text-7xl text-black">
-                  <AnimatedCounter value={top3[0].total_xp} /> <span className="text-2xl">XP</span>
+                <div className="font-anton text-6xl text-black tracking-tight">
+                  <AnimatedCounter value={eventState.current_day === 1 ? top3[0].day1_score : top3[0].total_score} /> <span className="text-2xl">PTS</span>
+                </div>
+                <div className="mt-3 text-xs font-grotesk font-black uppercase text-black/80">
+                  Spendable Wallet: {top3[0].current_wallet} PTS • {top3[0].games_played} Games Played
                 </div>
               </div>
             )}
@@ -187,7 +203,7 @@ export default function ProjectorDisplayPage() {
             {/* 3rd Place Bronze */}
             {top3[2] && (
               <div className="order-3 bg-white text-black border-4 border-black rounded-3xl p-6 retro-shadow-black text-center">
-                <span className="font-grotesk text-xs uppercase font-black px-3 py-1 rounded bg-amber-100 text-amber-900 border border-black mb-3 inline-block">
+                <span className="font-grotesk text-xs uppercase font-black px-3 py-1 rounded bg-amber-200 text-amber-900 border border-black mb-3 inline-block">
                   #3 BRONZE TIER
                 </span>
                 <h3 className="font-anton text-3xl sm:text-4xl uppercase tracking-tight truncate">
@@ -197,62 +213,45 @@ export default function ProjectorDisplayPage() {
                   CAPTAIN: {top3[2].team.captain}
                 </p>
                 <div className="font-anton text-5xl text-black">
-                  <AnimatedCounter value={top3[2].total_xp} /> <span className="text-xl">XP</span>
+                  <AnimatedCounter value={eventState.current_day === 1 ? top3[2].day1_score : top3[2].total_score} /> <span className="text-xl">PTS</span>
+                </div>
+                <div className="mt-2 text-xs font-grotesk font-bold text-slate-600">
+                  Wallet: {top3[2].current_wallet} pts • {top3[2].games_played} Games
                 </div>
               </div>
             )}
           </div>
         ) : (
-          <div className="border-4 border-black bg-white text-black rounded-3xl p-10 text-center retro-shadow-black my-8">
-            <h3 className="font-anton text-3xl uppercase">AWAITING STAGE SCORING DISPATCHES</h3>
-            <p className="font-sans text-sm text-slate-600 mt-2">
-              Referees will begin scoring collegiate squads shortly across all 7 attractions.
-            </p>
+          <div className="text-center p-12 bg-black/60 border-2 border-slate-800 rounded-3xl mb-8">
+            <p className="font-anton text-2xl text-slate-400 uppercase">AWAITING ARENA SQUAD QUALIFIERS</p>
           </div>
         )}
 
-        {/* Undercard Grid for Ranks 4-10 */}
+        {/* Runner-ups Bar */}
         {runnerUps.length > 0 && (
-          <div className="bg-black/80 border-4 border-black rounded-3xl p-6 retro-shadow-black">
-            <h4 className="font-grotesk text-xs uppercase font-black tracking-widest text-slate-400 mb-4 border-b border-white/20 pb-2">
-              RUNNER-UP SQUADS // AUDITORIUM TRACKER
-            </h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {runnerUps.map((s) => (
-                <div
-                  key={s.team.id}
-                  className="bg-white/10 border-2 border-white/20 rounded-xl p-3 flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-anton text-lg text-fest-yellow">#{s.rank}</span>
-                    <span className="font-anton text-base text-white uppercase truncate max-w-[110px]">
-                      {s.team.name}
-                    </span>
-                  </div>
-                  <span className="font-anton text-lg text-fest-cyan">
-                    <AnimatedCounter value={s.total_xp} /> XP
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="bg-black/80 border-2 border-white/20 rounded-2xl p-4 flex flex-wrap items-center justify-around gap-4 text-xs font-grotesk">
+            {runnerUps.map((runner) => (
+              <div key={runner.team.id} className="flex items-center gap-2">
+                <span className="font-anton text-slate-500">#{runner.rank}</span>
+                <span className="font-anton text-white uppercase">{runner.team.name}:</span>
+                <span className="font-anton text-fest-yellow">
+                  {eventState.current_day === 1 ? runner.day1_score : runner.total_score} PTS
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </main>
 
-      {/* Bottom Live Feed Marquee */}
-      <footer className="bg-black/90 border-t-2 border-white/20 py-3 px-6 flex items-center justify-between text-xs z-20">
-        <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-fest-pink animate-ping" />
-          <span className="font-grotesk text-xs uppercase font-bold text-fest-yellow">
-            LATEST STAGE TRANSMISSION:
-          </span>
-          <span className="font-sans text-slate-300 font-medium">
-            {getLastUpdateText()}
-          </span>
+      {/* Ticker at bottom */}
+      <footer className="bg-black/95 border-t-2 border-white/20 px-6 py-3 flex items-center justify-between text-xs font-grotesk z-20">
+        <div className="flex items-center gap-2 text-fest-yellow font-bold uppercase truncate max-w-3xl">
+          <span className="w-2 h-2 rounded-full bg-fest-pink animate-ping" />
+          <span>{getLastUpdateText()}</span>
         </div>
-
-        <div className="hidden sm:flex items-center gap-2 font-grotesk text-[11px] font-bold text-slate-400">
-          <span>REALTIME WEBSOCKET: {realtimeStatus.toUpperCase()}</span>
+        <div className="flex items-center gap-2 text-slate-400">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>REALTIME TOURNAMENT SYNC</span>
         </div>
       </footer>
     </div>

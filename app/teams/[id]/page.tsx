@@ -20,21 +20,37 @@ import {
   Zap,
   RotateCcw,
   CheckCircle2,
-  Gamepad2
+  Coins,
+  History,
+  Gavel,
+  XCircle,
+  HelpCircle,
+  Award
 } from "lucide-react";
 import { useArena } from "@/lib/store/arena-context";
 
 export default function TeamProfilePage() {
   const params = useParams();
   const teamId = params?.id as string;
-  const { teams, standings, games, scoreEvents } = useArena();
+  const { teams, standings, games, day1Games, day2Games, scoreEvents, walletTransactions, gameParticipations, auctionQuestions } = useArena();
 
   const team = teams.find((t) => t.id === teamId);
   const standing = standings.find((s) => s.team.id === team?.id);
 
+  // Filter team transactions
+  const teamTransactions = walletTransactions
+    .filter((tx) => tx.team_id === team?.id)
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  // Filter team score events
   const teamEvents = scoreEvents
     .filter((e) => e.team_id === team?.id)
     .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  // Filter auction questions won
+  const teamQuestionsWon = auctionQuestions.filter(
+    (q) => q.winning_team_id === team?.id && (q.status === "SOLD" || q.status === "ANSWERED")
+  );
 
   if (!team) {
     return (
@@ -45,7 +61,7 @@ export default function TeamProfilePage() {
         <PixelBunting />
         <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-20 text-center">
           <div className="bg-white text-slate-900 border-4 border-black rounded-3xl p-8 sm:p-12 retro-shadow-black">
-            <span className="font-grotesk text-xs uppercase font-black px-3 py-1 bg-fest-magenta text-white rounded">
+            <span className="font-grotesk text-xs uppercase font-black px-3 py-1 bg-fest-coral text-white rounded">
               ERROR 404
             </span>
             <h2 className="font-anton text-4xl sm:text-5xl uppercase text-black my-4">
@@ -92,7 +108,7 @@ export default function TeamProfilePage() {
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-fest-yellow animate-ping" />
             <span className="font-grotesk text-xs uppercase font-black tracking-widest text-black bg-fest-yellow px-3 py-1 rounded-full border border-black shadow-[2px_2px_0px_#000]">
-              [ SQUAD DOSSIER ]
+              [ SQUAD STRATEGIC DOSSIER ]
             </span>
           </div>
         </div>
@@ -107,7 +123,7 @@ export default function TeamProfilePage() {
               {/* Badges strip */}
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <span className="font-grotesk text-xs uppercase font-black px-3 py-1 rounded-md bg-black text-white border border-black">
-                  COLLEGIATE DIVISION
+                  PIXELPALOOZA 2-DAY TOURNAMENT
                 </span>
                 {isLeader ? (
                   <span className="font-grotesk text-xs uppercase font-black px-3 py-1 rounded-md bg-fest-yellow text-black border border-black flex items-center gap-1.5 shadow-[2px_2px_0px_#000]">
@@ -118,213 +134,259 @@ export default function TeamProfilePage() {
                   <span className="font-grotesk text-xs uppercase font-black px-3 py-1 rounded-md bg-fest-coral text-white border border-black shadow-[2px_2px_0px_#000]">
                     TOP 3 MAIN STAGE PODIUM
                   </span>
-                ) : (
-                  <span className="font-grotesk text-xs uppercase font-bold px-3 py-1 rounded-md bg-slate-100 text-slate-700 border border-slate-300">
-                    UNDERCARD SQUAD
-                  </span>
-                )}
+                ) : null}
               </div>
 
               {/* Squad Name */}
-              <h1 className="font-anton text-5xl sm:text-6xl lg:text-7xl uppercase tracking-tight text-black leading-none mb-3">
-                {team.name}
+              <h1 className="font-anton text-5xl sm:text-6xl uppercase tracking-tight text-black flex items-center gap-3">
+                <span>{team.name}</span>
+                <span className="text-3xl">{team.music_icon || "🎸"}</span>
               </h1>
 
-              {/* Captain & Roster */}
-              <div className="space-y-1.5">
-                <p className="font-grotesk text-sm uppercase font-bold text-slate-700 flex items-center gap-2">
-                  <span className="text-fest-magenta font-black">LEAD CAPTAIN:</span>
-                  <span className="px-2 py-0.5 bg-yellow-100 border border-yellow-300 rounded font-black text-black">
-                    {team.captain || "UNASSIGNED"}
-                  </span>
-                </p>
+              {/* Roster & Captain */}
+              <div className="flex flex-wrap items-center gap-4 text-xs font-grotesk text-slate-600 uppercase font-bold mt-2">
+                <span>CAPTAIN: <strong className="text-black">{team.captain}</strong></span>
+                <span>•</span>
+                <span>MEMBERS: <strong className="text-black">{team.members.length > 0 ? team.members.join(", ") : "Architect Crew"}</strong></span>
+              </div>
+            </div>
 
-                {team.members && team.members.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="font-grotesk text-xs uppercase font-bold text-slate-500 mr-1">
-                      ROSTER:
-                    </span>
-                    {team.members.map((member, idx) => (
-                      <span
-                        key={idx}
-                        className="font-grotesk text-xs uppercase font-semibold px-2 py-0.5 rounded bg-slate-100 border border-slate-300 text-slate-800"
-                      >
-                        {member}
+            {/* Main Metrics: Spendable Wallet & Total Score */}
+            <div className="flex items-center gap-4">
+              {/* Spendable Event Wallet */}
+              <div className="bg-amber-50 border-3 border-black rounded-2xl p-4 sm:p-5 text-center min-w-[150px] shadow-[4px_4px_0px_#000]">
+                <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-grotesk font-black text-amber-800 tracking-wider mb-1">
+                  <Coins className="w-3.5 h-3.5 text-amber-600" />
+                  AVAILABLE WALLET
+                </div>
+                <div className="font-anton text-4xl sm:text-5xl text-black">
+                  <AnimatedCounter value={team.current_wallet} />
+                </div>
+                <div className="text-[10px] font-grotesk font-bold text-slate-500 uppercase mt-1">
+                  / 1500 STARTING BUDGET
+                </div>
+              </div>
+
+              {/* Tournament Overall Score */}
+              <div className="bg-fest-yellow border-3 border-black rounded-2xl p-4 sm:p-5 text-center min-w-[150px] shadow-[4px_4px_0px_#000]">
+                <div className="flex items-center justify-center gap-1 text-[10px] uppercase font-grotesk font-black text-black tracking-wider mb-1">
+                  <Trophy className="w-3.5 h-3.5" />
+                  OVERALL SCORE
+                </div>
+                <div className="font-anton text-4xl sm:text-5xl text-black">
+                  <AnimatedCounter value={standing?.total_score || 0} />
+                </div>
+                <div className="text-[10px] font-grotesk font-bold text-black/80 uppercase mt-1">
+                  RANK #{standing?.rank || 1}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2-Column Strategy Breakdown: Day 1 Games & Day 2 Auction */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-10">
+          
+          {/* Day 1: 5 Physical Games Participation Status */}
+          <div className="lg:col-span-6 bg-slate-900/90 border-4 border-black rounded-3xl p-6 sm:p-8 retro-shadow-black">
+            <div className="flex items-center justify-between border-b-2 border-slate-800 pb-3 mb-6">
+              <div>
+                <span className="font-grotesk text-xs uppercase font-black text-fest-yellow tracking-widest block">
+                  DAY 1 SQUAD PERFORMANCE
+                </span>
+                <h3 className="font-anton text-2xl uppercase text-white">
+                  5 PHYSICAL GAMES ({standing?.games_played || 0} / 5 PLAYED)
+                </h3>
+              </div>
+              <span className="font-anton text-xl text-fest-cyan">
+                {standing?.day1_score || 0} PTS
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              {day1Games.map((game) => {
+                const part = gameParticipations.find((p) => p.team_id === team.id && p.game_id === game.id);
+                const score = standing?.game_breakdown[game.id] || 0;
+                const status = part ? part.status : "NOT_SELECTED";
+
+                return (
+                  <div
+                    key={game.id}
+                    className="bg-black/60 border border-slate-800 rounded-2xl p-4 flex items-center justify-between transition-all"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-anton text-base uppercase text-white">
+                          {game.name}
+                        </span>
+                        <span className={`text-[10px] font-grotesk uppercase font-black px-1.5 py-0.5 rounded ${
+                          game.difficulty === "Easy" ? "bg-emerald-950 text-emerald-400" :
+                          game.difficulty === "Medium" ? "bg-amber-950 text-amber-400" :
+                          "bg-red-950 text-red-400"
+                        }`}>
+                          {game.difficulty}
+                        </span>
+                      </div>
+                      <span className="font-sans text-xs text-slate-400">
+                        Entry Cost: <strong className="text-fest-cyan">{game.entry_cost} pts</strong>
                       </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Score & Rank Scorecard */}
-            <div className="flex items-center gap-4 bg-slate-50 border-3 border-black rounded-2xl p-5 retro-shadow-black">
-              <div className="text-center px-4 border-r-2 border-slate-300">
-                <span className="font-grotesk text-[10px] uppercase font-black tracking-widest text-slate-500 block mb-1">
-                  CURRENT RANK
-                </span>
-                <span className="font-anton text-5xl text-black">
-                  #{standing?.rank || "-"}
-                </span>
-              </div>
-
-              <div className="text-center px-4">
-                <span className="font-grotesk text-[10px] uppercase font-black tracking-widest text-slate-500 block mb-1">
-                  TOTAL FESTIVAL XP
-                </span>
-                <span className="font-anton text-5xl text-fest-magenta">
-                  <AnimatedCounter value={standing?.total_xp || 0} />
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Two-Column Grid: Attractions Performance & Audit Trail */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column (2 spans): Stage Performance Matrix */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-black/85 text-white border-4 border-black rounded-3xl p-6 sm:p-8 retro-shadow-black">
-              <div className="flex items-center justify-between mb-6 border-b-2 border-white/20 pb-4">
-                <div className="flex items-center gap-2">
-                  <Gamepad2 className="w-5 h-5 text-fest-yellow" />
-                  <h3 className="font-anton text-2xl uppercase tracking-wider text-white">
-                    7 BIOME STAGE BREAKDOWN
-                  </h3>
-                </div>
-                <span className="font-grotesk text-xs uppercase font-bold text-fest-cyan">
-                  {games.length} ATTRACTIONS
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {games.map((game, gIdx) => {
-                  const gamePoints = teamEvents
-                    .filter((e) => e.game_id === game.id)
-                    .reduce((acc, curr) => acc + curr.points, 0);
-                  const played = gamePoints > 0;
-
-                  return (
-                    <div
-                      key={game.id}
-                      className={`p-4 rounded-2xl border-2 transition-all ${
-                        played
-                          ? "bg-white/10 border-fest-yellow shadow-[2px_2px_0px_#FFE500]"
-                          : "bg-white/5 border-white/10"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <span className="font-grotesk text-[10px] uppercase font-bold text-slate-400">
-                          STAGE 0{gIdx + 1}
-                        </span>
-                        <span
-                          className={`font-grotesk text-[10px] uppercase font-black px-2 py-0.5 rounded ${
-                            played
-                              ? "bg-fest-yellow text-black"
-                              : "bg-white/10 text-slate-400"
-                          }`}
-                        >
-                          {played ? "COMPLETED" : "PENDING"}
-                        </span>
-                      </div>
-
-                      <h4 className="font-anton text-xl uppercase tracking-tight text-white mb-2 truncate">
-                        {game.name}
-                      </h4>
-
-                      <div className="flex items-center justify-between text-xs font-grotesk font-bold">
-                        <span className="text-slate-400">XP EARNED:</span>
-                        <span className={`text-base font-anton ${played ? "text-fest-cyan" : "text-slate-500"}`}>
-                          +{gamePoints} XP
-                        </span>
-                      </div>
                     </div>
-                  );
-                })}
-              </div>
+
+                    <div className="text-right flex flex-col items-end gap-1">
+                      <span className={`text-[10px] font-grotesk uppercase font-black px-2 py-0.5 rounded border ${
+                        status === "COMPLETED" ? "bg-emerald-950 text-emerald-400 border-emerald-800" :
+                        status === "PLAYING" ? "bg-amber-950 text-amber-300 border-amber-800 animate-pulse" :
+                        status === "REGISTERED" ? "bg-blue-950 text-blue-300 border-blue-800" :
+                        status === "SKIPPED" ? "bg-slate-800 text-slate-400 border-slate-700" :
+                        "bg-slate-900 text-slate-500 border-slate-800"
+                      }`}>
+                        {status === "NOT_SELECTED" ? "SKIPPED / UNPLAYED" : status}
+                      </span>
+                      {score > 0 && (
+                        <span className="font-anton text-xs text-fest-yellow">
+                          +{score} PTS
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Right Column (1 span): Score Event Timeline */}
-          <div className="space-y-6">
-            <div className="bg-black/85 text-white border-4 border-black rounded-3xl p-6 retro-shadow-black">
-              <div className="flex items-center justify-between mb-4 border-b-2 border-white/20 pb-3">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-fest-pink" />
-                  <h3 className="font-anton text-xl uppercase tracking-wider text-white">
-                    LIVE COMBAT LOG
-                  </h3>
-                </div>
-                <span className="font-grotesk text-[10px] uppercase font-bold text-slate-400">
-                  {teamEvents.length} DISPATCHES
+          {/* Day 2: The Tech Auction Status */}
+          <div className="lg:col-span-6 bg-slate-900/90 border-4 border-black rounded-3xl p-6 sm:p-8 retro-shadow-black">
+            <div className="flex items-center justify-between border-b-2 border-slate-800 pb-3 mb-6">
+              <div>
+                <span className="font-grotesk text-xs uppercase font-black text-fest-pink tracking-widest block">
+                  DAY 2 SQUAD PERFORMANCE
+                </span>
+                <h3 className="font-anton text-2xl uppercase text-white">
+                  THE TECH AUCTION
+                </h3>
+              </div>
+              <span className="font-anton text-xl text-fest-pink">
+                {standing?.day2_score || 0} PTS
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="bg-black/60 border border-slate-800 rounded-2xl p-4 text-center">
+                <span className="font-grotesk text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                  QUESTIONS WON
+                </span>
+                <span className="font-anton text-3xl text-fest-pink">
+                  {teamQuestionsWon.length}
                 </span>
               </div>
-
-              {teamEvents.length === 0 ? (
-                <div className="text-center py-8 text-slate-400 font-sans text-xs">
-                  No score transactions logged yet for this squad. Referees will dispatch points once attractions kick off!
-                </div>
-              ) : (
-                <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
-                  {teamEvents.map((evt) => {
-                    const game = games.find((g) => g.id === evt.game_id);
-                    const isPenalty = evt.points < 0 || evt.type === "PENALTY";
-                    const isReversal = evt.type === "REVERSAL";
-
-                    return (
-                      <div
-                        key={evt.id}
-                        className={`p-3 rounded-xl border-2 transition-all ${
-                          isPenalty
-                            ? "bg-red-950/40 border-red-500/50"
-                            : isReversal
-                            ? "bg-amber-950/40 border-amber-500/50"
-                            : "bg-white/5 border-white/15 hover:border-fest-yellow"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-grotesk text-[10px] uppercase font-black text-slate-400 truncate max-w-[120px]">
-                            {game?.name || "ARENA"}
-                          </span>
-                          <span
-                            className={`font-anton text-base ${
-                              isPenalty
-                                ? "text-red-400"
-                                : isReversal
-                                ? "text-amber-400"
-                                : "text-fest-yellow"
-                            }`}
-                          >
-                            {evt.points > 0 ? `+${evt.points}` : evt.points} XP
-                          </span>
-                        </div>
-
-                        <p className="font-sans text-xs text-slate-300 line-clamp-1">
-                          {evt.reason || (isPenalty ? "Penalty deduction" : "Stage achievement")}
-                        </p>
-
-                        <span className="font-grotesk text-[9px] uppercase font-medium text-slate-500 block mt-1">
-                          {new Date(evt.created_at).toLocaleTimeString()}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Action Button */}
-              <div className="mt-6 pt-4 border-t border-white/10">
-                <Link
-                  href="/admin"
-                  className="w-full py-2.5 px-4 bg-fest-yellow hover:bg-white text-black font-anton text-sm uppercase tracking-wider rounded-xl border-2 border-black retro-shadow-black transition-all flex items-center justify-center gap-1.5"
-                >
-                  DISPATCH SQUAD XP IN BOOTH ⚡
-                </Link>
+              <div className="bg-black/60 border border-slate-800 rounded-2xl p-4 text-center">
+                <span className="font-grotesk text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                  AUCTION EARNINGS
+                </span>
+                <span className="font-anton text-3xl text-fest-yellow">
+                  +{standing?.day2_score || 0} PTS
+                </span>
               </div>
             </div>
+
+            {teamQuestionsWon.length === 0 ? (
+              <div className="bg-black/40 border border-slate-800 rounded-2xl p-6 text-center text-xs font-sans text-slate-400">
+                <Gavel className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                No auction questions acquired yet. On Day 2, the squad can bid using their remaining budget of {team.current_wallet} points.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <span className="font-grotesk text-xs uppercase font-bold text-slate-400 block mb-1">
+                  ACQUIRED QUESTIONS:
+                </span>
+                {teamQuestionsWon.map((q) => (
+                  <div key={q.id} className="bg-black/50 border border-slate-800 rounded-xl p-3 text-xs flex items-center justify-between">
+                    <div>
+                      <span className="font-anton text-fest-yellow mr-2">Q#{q.question_number}</span>
+                      <span className="text-slate-300 font-medium">{q.category}</span>
+                    </div>
+                    <span className="font-anton text-emerald-400">
+                      +{q.reward_points} PTS ({q.answer_status || "PENDING"})
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* Complete Auditable Wallet Transaction Ledger */}
+        <div className="bg-slate-900/90 border-4 border-black rounded-3xl p-6 sm:p-8 retro-shadow-black">
+          <div className="flex items-center justify-between border-b-2 border-slate-800 pb-3 mb-6">
+            <div>
+              <span className="font-grotesk text-xs uppercase font-black text-fest-yellow tracking-widest block">
+                FINANCIAL INTEGRITY & AUDIT TRAIL
+              </span>
+              <h3 className="font-anton text-2xl uppercase text-white">
+                SQUAD WALLET TRANSACTION HISTORY ({teamTransactions.length})
+              </h3>
+            </div>
+            <span className="font-grotesk text-xs text-slate-400">
+              Spendable Balance: <strong className="text-fest-yellow">{team.current_wallet} PTS</strong>
+            </span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-slate-800 font-grotesk text-xs uppercase text-slate-400">
+                  <th className="py-2.5 px-3">TIME</th>
+                  <th className="py-2.5 px-3">TRANSACTION TYPE</th>
+                  <th className="py-2.5 px-3 text-right">POINTS DELTA</th>
+                  <th className="py-2.5 px-3">DESCRIPTION / AUDIT NOTE</th>
+                  <th className="py-2.5 px-3">RECORDED BY</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800 text-xs font-sans">
+                {teamTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-6 text-center text-slate-500 font-grotesk uppercase">
+                      No wallet transactions recorded.
+                    </td>
+                  </tr>
+                ) : (
+                  teamTransactions.map((tx) => (
+                    <tr key={tx.id} className={`hover:bg-slate-800/30 ${tx.is_reversed ? "opacity-40 line-through" : ""}`}>
+                      <td className="py-3 px-3 text-slate-400 font-mono text-[11px]">
+                        {new Date(tx.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-grotesk uppercase font-black ${
+                          tx.transaction_type === "INITIAL_ALLOCATION" ? "bg-fest-yellow/20 text-fest-yellow border border-fest-yellow/40" :
+                          tx.transaction_type === "GAME_ENTRY" ? "bg-fest-coral/20 text-fest-coral border border-fest-coral/40" :
+                          tx.transaction_type === "AUCTION_PURCHASE" ? "bg-purple-950 text-purple-300 border border-purple-800" :
+                          tx.transaction_type === "REVERSAL" ? "bg-amber-950 text-amber-300 border border-amber-800" :
+                          "bg-emerald-950 text-emerald-400 border border-emerald-800"
+                        }`}>
+                          {tx.transaction_type}
+                        </span>
+                      </td>
+                      <td className={`py-3 px-3 text-right font-anton text-base ${
+                        tx.amount >= 0 ? "text-emerald-400" : "text-fest-coral"
+                      }`}>
+                        {tx.amount >= 0 ? `+${tx.amount}` : tx.amount} PTS
+                      </td>
+                      <td className="py-3 px-3 text-slate-200 font-medium">
+                        {tx.description}
+                      </td>
+                      <td className="py-3 px-3 text-slate-400 text-[11px]">
+                        {tx.created_by}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
+        {/* Footer */}
         <FooterStatus />
       </main>
     </div>

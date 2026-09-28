@@ -10,11 +10,8 @@ import {
   Volume2, 
   VolumeX, 
   Users, 
-  ExternalLink,
   Terminal,
-  Music,
-  Tent,
-  Radio
+  Tent
 } from "lucide-react";
 import { useArena } from "@/lib/store/arena-context";
 import { soundFx } from "@/lib/audio/sound-fx";
@@ -32,7 +29,7 @@ export function Navbar() {
   const navLinks = [
     { href: "/", label: "FESTIVAL ARENA", icon: Gamepad2 },
     { href: "/leaderboard", label: "LIVE LEADERBOARD", icon: Trophy },
-    { href: "/games", label: "7 ATTRACTIONS", icon: Gamepad2 },
+    { href: "/games", label: "2-DAY ATTRACTIONS", icon: Gamepad2 },
     { href: teams[0] ? `/teams/${teams[0].id}` : "/#leaderboard", label: "SQUAD DOSSIER", icon: Users },
     { href: "/display", label: "STAGE HUD", icon: Tv },
   ];
@@ -83,6 +80,11 @@ export function Navbar() {
 
         {/* Status Pills & Admin Action */}
         <div className="flex items-center gap-2">
+          {/* Day Badge */}
+          <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-xs font-anton text-fest-yellow uppercase">
+            <span>DAY {eventState.current_day}</span>
+          </div>
+
           {/* Admin Control Booth Button */}
           <Link
             href="/admin"
@@ -95,7 +97,9 @@ export function Navbar() {
           {/* Event Status Live Pill */}
           <div className="hidden lg:flex items-center gap-1.5 bg-black/60 border border-white/20 px-2.5 py-1.5 rounded-lg text-[11px] font-grotesk uppercase font-bold">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span className="text-emerald-400">FESTIVAL LIVE</span>
+            <span className="text-emerald-400">
+              {eventState.event_status === "LIVE" ? "FESTIVAL LIVE" : eventState.event_status}
+            </span>
           </div>
 
           {/* Stage Projector Button */}

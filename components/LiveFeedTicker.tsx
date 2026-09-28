@@ -5,7 +5,7 @@ import { Zap, Wifi } from "lucide-react";
 import { useArena } from "@/lib/store/arena-context";
 
 export function LiveFeedTicker() {
-  const { lastBroadcastEvent, teams, games, standings, realtimeStatus } = useArena();
+  const { lastBroadcastEvent, teams, games, standings, overallStandings, realtimeStatus, eventState } = useArena();
   const [pulse, setPulse] = useState(false);
 
   useEffect(() => {
@@ -19,11 +19,11 @@ export function LiveFeedTicker() {
   // Construct message from the latest event
   const getTickerMessage = () => {
     if (!lastBroadcastEvent) {
-      if (standings.length > 0 && standings[0].total_xp > 0) {
-        const leader = standings[0];
-        return `PIXELPALOOZA FESTIVAL ARENA ACTIVE | CURRENT HEADLINER: ${leader.team.name.toUpperCase()} (${leader.total_xp} XP) | 7 ARENA ATTRACTIONS LIVE`;
+      if (overallStandings.length > 0 && overallStandings[0].total_score > 0) {
+        const leader = overallStandings[0];
+        return `PIXELPALOOZA 2-DAY ARENA ACTIVE | CURRENT HEADLINER: ${leader.team.name.toUpperCase()} (${leader.total_score} PTS) | DAY ${eventState.current_day} LIVE`;
       }
-      return `PIXELPALOOZA 2026 LIVE // GDGOC NMIMS NAVI MUMBAI // REALTIME AUDITORIUM DISPATCH ACTIVE // STANDING BY FOR MATCH 1`;
+      return `PIXELPALOOZA 2-DAY FESTIVAL // 1500 STARTING BUDGET // DAY 1: 5 GAMES • DAY 2: THE AUCTION // REALTIME SYNC ACTIVE`;
     }
 
     const team = teams.find((t) => t.id === lastBroadcastEvent.team_id);
@@ -33,9 +33,9 @@ export function LiveFeedTicker() {
 
     return `${team ? team.name.toUpperCase() : "SQUAD"} just ${
       lastBroadcastEvent.points >= 0 ? "earned" : "received penalty"
-    } ${sign}${lastBroadcastEvent.points} XP 🎵 in ${
+    } ${sign}${lastBroadcastEvent.points} PTS 🎵 in ${
       game ? game.name : "Tournament Challenge"
-    }! (New Total: ${teamStanding ? teamStanding.total_xp : 0} XP)`;
+    }! (New Total: ${teamStanding ? teamStanding.total_score : 0} PTS)`;
   };
 
   return (
