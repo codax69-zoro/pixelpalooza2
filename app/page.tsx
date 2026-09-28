@@ -60,13 +60,13 @@ export default function StitchPixelpaloozaFullPage() {
           {/* Brand & Mascot Logo */}
           <Link className="flex items-center gap-3 group" href="#">
             <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 p-0.5 border border-white/30 group-hover:scale-105 transition-transform flex items-center justify-center">
-              <span className="font-anton text-xl text-fest-yellow">P25</span>
+              <span className="font-anton text-xl text-fest-yellow">P26</span>
             </div>
             <div className="flex flex-col leading-none">
               <span className="font-anton text-2xl tracking-wider text-white uppercase group-hover:text-fest-yellow transition-colors flex items-center gap-1.5">
                 PIXELPALOOZA
                 <span className="text-xs font-grotesk px-1.5 py-0.5 bg-fest-coral text-white rounded font-black tracking-normal">
-                  ’25
+                  ’26
                 </span>
               </span>
               <span className="font-grotesk text-[10px] uppercase font-bold tracking-widest text-fest-cyan">
@@ -201,7 +201,7 @@ export default function StitchPixelpaloozaFullPage() {
 
             {/* Angled Unhinged Festival Ribbon */}
             <div className="inline-block transform -rotate-2 -mt-4 sm:-mt-8 md:-mt-12 bg-fest-pink text-white font-anton text-2xl sm:text-4xl md:text-5xl uppercase px-6 py-2 border-4 border-black retro-shadow-black">
-              WHERE IDEAS GET UNHINGED ★ 2025
+              WHERE IDEAS GET UNHINGED ★ 2026
             </div>
           </div>
 
@@ -349,7 +349,7 @@ export default function StitchPixelpaloozaFullPage() {
                   <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border-2 border-black bg-slate-900">
                     <Image
                       src="/images/pixelpalooza-poster.jpeg"
-                      alt="Official Pixelpalooza 2025 Festival Poster"
+                      alt="Official Pixelpalooza 2026 Festival Poster"
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                     />
@@ -1280,7 +1280,7 @@ export default function StitchPixelpaloozaFullPage() {
               PIXELPALOOZA
             </div>
             <div className="font-anton text-2xl sm:text-4xl md:text-5xl text-fest-cyan uppercase tracking-widest mt-4">
-              WHERE IDEAS GET UNHINGED ★ 2025
+              WHERE IDEAS GET UNHINGED ★ 2026
             </div>
           </div>
 
@@ -1345,7 +1345,7 @@ export default function StitchPixelpaloozaFullPage() {
           {/* Bottom Credits & Copyright */}
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 font-grotesk text-xs text-slate-400">
             <div>
-              © 2025 PIXELPALOOZA. All festival trademarks, voxel stages, and campus rights reserved.
+              © 2026 PIXELPALOOZA. All festival trademarks, voxel stages, and campus rights reserved.
             </div>
             <div className="flex items-center gap-6 uppercase font-bold text-slate-300">
               <a className="hover:text-fest-yellow" href="#arena">FESTIVAL RULES</a>

@@ -81,7 +81,7 @@ export default function ProjectorDisplayPage() {
               <span className="font-anton text-2xl lg:text-3xl tracking-wider text-white uppercase flex items-center gap-1.5">
                 PIXELPALOOZA
                 <span className="text-xs font-grotesk px-2 py-0.5 bg-fest-coral text-white rounded font-black tracking-normal">
-                  ’25
+                  ’26
                 </span>
               </span>
               <div className="flex items-center gap-1.5 bg-emerald-950/80 border border-emerald-500/50 px-3 py-1 rounded-full text-xs font-grotesk font-black text-emerald-400">

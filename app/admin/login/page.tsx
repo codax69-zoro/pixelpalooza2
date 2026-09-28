@@ -187,7 +187,7 @@ export default function AdminPasscodeLoginPage() {
 
       {/* Footer */}
       <footer className="py-4 text-center text-xs font-grotesk text-slate-500 z-10">
-        PIXELPALOOZA 2025 // STRICTLY FOR CONTEST ORGANIZERS & FIELD REFEREES
+        PIXELPALOOZA 2026 // STRICTLY FOR CONTEST ORGANIZERS & FIELD REFEREES
       </footer>
     </div>
   );

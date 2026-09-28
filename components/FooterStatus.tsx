@@ -51,7 +51,7 @@ export function FooterStatus() {
       {/* Protocol & Latency Bar */}
       <div className="bg-obsidian-950 border border-voxel-border p-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-slate-500">
         <div>
-          <div>© 2025 GOOGLE DEVELOPER GROUPS ON CAMPUS // GDGOC TECH ARENA // TOURNAMENT PROTOCOL V2.4</div>
+          <div>© 2026 GOOGLE DEVELOPER GROUPS ON CAMPUS // GDGOC TECH ARENA // TOURNAMENT PROTOCOL V2.4</div>
           <div className="text-slate-600">SYSTEM ARCHITECTURE POWERED BY GDG TECH CORE</div>
         </div>
 

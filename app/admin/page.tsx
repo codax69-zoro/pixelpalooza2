@@ -293,15 +293,15 @@ export default function AdminFestivalControlBooth() {
       {/* =================================================================== */}
       <aside className="w-full lg:w-64 bg-black/90 border-r-2 border-white/20 flex flex-col justify-between shrink-0 p-4 lg:min-h-screen z-20">
         <div>
-          {/* Top Brand with P25 Badge */}
+          {/* Top Brand with P26 Badge */}
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 rounded-lg overflow-hidden bg-white/10 p-0.5 border border-white/30 flex items-center justify-center">
-              <span className="font-anton text-xl text-fest-yellow">P25</span>
+              <span className="font-anton text-xl text-fest-yellow">P26</span>
             </div>
             <div>
               <div className="font-anton text-xl tracking-wider text-white uppercase flex items-center gap-1 leading-none">
                 <span>PIXELPALOOZA</span>
-                <span className="text-fest-coral text-xs">’25</span>
+                <span className="text-fest-coral text-xs">’26</span>
               </div>
               <div className="text-[9px] font-grotesk font-black text-fest-cyan tracking-widest uppercase mt-0.5">
                 CONTROL BOOTH

@@ -3,7 +3,7 @@ import "./globals.css";
 import { ArenaProvider } from "@/lib/store/arena-context";
 
 export const metadata: Metadata = {
-  title: "PIXELPALOOZA 2025 | GDG On Campus NMIMS Navi Mumbai",
+  title: "PIXELPALOOZA 2026 | GDG On Campus NMIMS Navi Mumbai",
   description:
     "The mega techno-cultural music festival & competitive sandbox gaming arena. 16 Collegiate Squads, 7 Biome Stages, 8 Hours of relentless algorithmic combat and digital sonic euphoria.",
 };

@@ -43,15 +43,15 @@ export function Navbar() {
         {/* Logo / Brand */}
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 group">
-            {/* P25 Badge */}
+            {/* P26 Badge */}
             <div className="w-9 h-9 rounded-lg overflow-hidden bg-white/10 p-0.5 border border-white/30 group-hover:scale-105 transition-transform flex items-center justify-center">
-              <span className="font-anton text-lg text-fest-yellow">P25</span>
+              <span className="font-anton text-lg text-fest-yellow">P26</span>
             </div>
             <div className="flex flex-col leading-none">
               <span className="font-anton text-xl tracking-wider text-white uppercase group-hover:text-fest-yellow transition-colors flex items-center gap-1.5">
                 PIXELPALOOZA
                 <span className="text-[10px] font-grotesk px-1.5 py-0.5 bg-fest-coral text-white rounded font-black tracking-normal">
-                  ’25
+                  ’26
                 </span>
               </span>
               <span className="font-grotesk text-[9px] uppercase font-bold tracking-widest text-fest-cyan">
