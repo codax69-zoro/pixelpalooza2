@@ -101,6 +101,84 @@ const STORAGE_KEY_SCORES = "gdgoc_pixelpalooza_scores_v3";
 const STORAGE_KEY_AUCTION = "gdgoc_pixelpalooza_auction_v3";
 const STORAGE_KEY_STATE = "gdgoc_pixelpalooza_state_v3";
 
+// Conflict-free smart merge helpers
+function mergeTeamsList(current: Team[], incoming: Team[]): Team[] {
+  if (!incoming || incoming.length === 0) return current;
+  const map = new Map<string, Team>();
+  for (const t of current) map.set(t.id, t);
+  for (const t of incoming) {
+    const existing = map.get(t.id);
+    if (!existing) {
+      map.set(t.id, t);
+    } else {
+      const incTime = new Date(t.updated_at || 0).getTime();
+      const curTime = new Date(existing.updated_at || 0).getTime();
+      map.set(t.id, incTime >= curTime ? { ...existing, ...t } : { ...t, ...existing });
+    }
+  }
+  return Array.from(map.values());
+}
+
+function mergeScoreEventsList(current: ScoreEvent[], incoming: ScoreEvent[]): ScoreEvent[] {
+  if (!incoming || incoming.length === 0) return current;
+  const map = new Map<string, ScoreEvent>();
+  for (const s of incoming) map.set(s.id, s);
+  for (const s of current) {
+    if (!map.has(s.id)) map.set(s.id, s);
+  }
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+function mergeWalletTransactionsList(current: WalletTransaction[], incoming: WalletTransaction[]): WalletTransaction[] {
+  if (!incoming || incoming.length === 0) return current;
+  const map = new Map<string, WalletTransaction>();
+  for (const tx of incoming) map.set(tx.id, tx);
+  for (const tx of current) {
+    if (!map.has(tx.id)) map.set(tx.id, tx);
+  }
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+function mergeParticipationsList(current: GameParticipation[], incoming: GameParticipation[]): GameParticipation[] {
+  if (!incoming || incoming.length === 0) return current;
+  const map = new Map<string, GameParticipation>();
+  for (const p of current) map.set(`${p.team_id}_${p.game_id}`, p);
+  for (const p of incoming) {
+    const key = `${p.team_id}_${p.game_id}`;
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, p);
+    } else {
+      const weights: Record<string, number> = {
+        COMPLETED: 5,
+        PLAYING: 4,
+        REGISTERED: 3,
+        SKIPPED: 2,
+        NOT_SELECTED: 1,
+      };
+      const curW = weights[existing.status] || 0;
+      const incW = weights[p.status] || 0;
+      map.set(key, incW >= curW ? { ...existing, ...p } : { ...p, ...existing });
+    }
+  }
+  return Array.from(map.values());
+}
+
+function generateUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export function ArenaProvider({ children }: { children: React.ReactNode }) {
   const [teams, setTeams] = useState<Team[]>(INITIAL_TEAMS);
   const [games, setGames] = useState<Game[]>(OFFICIAL_GAMES);
@@ -149,30 +227,45 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (data.type === "STATE_SYNC") {
-      if (data.teams && Array.isArray(data.teams)) setTeams(data.teams);
-      if (data.games && Array.isArray(data.games) && data.games.length > 0) setGames(data.games);
-      if (data.participations && Array.isArray(data.participations)) setGameParticipations(data.participations);
-      if (data.transactions && Array.isArray(data.transactions)) setWalletTransactions(data.transactions);
-      if (data.scores && Array.isArray(data.scores)) setScoreEvents(data.scores);
-      if (data.auction && Array.isArray(data.auction) && data.auction.length > 0) setAuctionQuestions(data.auction);
-      if (data.eventState && typeof data.eventState === "object") setEventState(data.eventState);
+      if (data.teams && Array.isArray(data.teams) && data.teams.length > 0) {
+        setTeams((prev) => mergeTeamsList(prev, data.teams));
+      }
+      if (data.games && Array.isArray(data.games) && data.games.length > 0) {
+        setGames(data.games);
+      }
+      if (data.participations && Array.isArray(data.participations) && data.participations.length > 0) {
+        setGameParticipations((prev) => mergeParticipationsList(prev, data.participations));
+      }
+      if (data.transactions && Array.isArray(data.transactions) && data.transactions.length > 0) {
+        setWalletTransactions((prev) => mergeWalletTransactionsList(prev, data.transactions));
+      }
+      if (data.scores && Array.isArray(data.scores) && data.scores.length > 0) {
+        setScoreEvents((prev) => mergeScoreEventsList(prev, data.scores));
+      }
+      if (data.auction && Array.isArray(data.auction) && data.auction.length > 0) {
+        setAuctionQuestions(data.auction);
+      }
+      if (data.eventState && typeof data.eventState === "object") {
+        setEventState((prev) => ({ ...prev, ...data.eventState }));
+      }
     } else if (data.type === "SCORE_ADDED") {
       const newEvt = data.event;
       if (newEvt) {
-        setScoreEvents((prev) => {
-          if (prev.some((e) => e.id === newEvt.id)) return prev;
-          return [newEvt, ...prev];
-        });
+        setScoreEvents((prev) => mergeScoreEventsList(prev, [newEvt]));
         setLastBroadcastEvent(newEvt);
         if (newEvt.points >= 0) soundFx.playScoreAdded();
         else soundFx.playPenalty();
       }
     } else if (data.type === "WALLET_UPDATED") {
-      if (data.teams) setTeams(data.teams);
-      if (data.transactions) setWalletTransactions(data.transactions);
+      if (data.teams && Array.isArray(data.teams) && data.teams.length > 0) {
+        setTeams((prev) => mergeTeamsList(prev, data.teams));
+      }
+      if (data.transactions && Array.isArray(data.transactions) && data.transactions.length > 0) {
+        setWalletTransactions((prev) => mergeWalletTransactionsList(prev, data.transactions));
+      }
       soundFx.playPowerUp();
     } else if (data.type === "EVENT_STATE_UPDATE") {
-      if (data.state) setEventState(data.state);
+      if (data.state) setEventState((prev) => ({ ...prev, ...data.state }));
     }
   }, []);
 
@@ -341,13 +434,55 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
               supabase.from("auction_questions").select("*").order("question_number", { ascending: true }),
             ]);
 
-            if (teamsRes.data && teamsRes.data.length > 0) setTeams(teamsRes.data);
-            if (gamesRes.data && gamesRes.data.length > 0) setGames(gamesRes.data);
-            if (scoresRes.data) setScoreEvents(scoresRes.data);
-            if (stateRes.data) setEventState(stateRes.data);
-            if (transRes.data) setWalletTransactions(transRes.data);
-            if (partRes.data) setGameParticipations(partRes.data);
-            if (auctRes.data && auctRes.data.length > 0) setAuctionQuestions(auctRes.data);
+            if (teamsRes.data && teamsRes.data.length > 0) {
+              setTeams((prev) => mergeTeamsList(prev, teamsRes.data));
+            }
+            if (gamesRes.data && gamesRes.data.length > 0) {
+              setGames(gamesRes.data);
+            }
+            if (scoresRes.data && scoresRes.data.length > 0) {
+              setScoreEvents((prev) => mergeScoreEventsList(prev, scoresRes.data));
+            }
+            if (stateRes.data) {
+              setEventState((prev) => ({ ...prev, ...stateRes.data }));
+            }
+            if (transRes.data && transRes.data.length > 0) {
+              setWalletTransactions((prev) => mergeWalletTransactionsList(prev, transRes.data));
+            }
+            if (partRes.data && partRes.data.length > 0) {
+              setGameParticipations((prev) => mergeParticipationsList(prev, partRes.data));
+            }
+            if (auctRes.data && auctRes.data.length > 0) {
+              setAuctionQuestions(auctRes.data);
+            }
+
+            // Proactive Data Rescue: If local storage has teams or scores not yet in Supabase, upload them!
+            try {
+              const localTeamsRaw = localStorage.getItem(STORAGE_KEY_TEAMS);
+              const localScoresRaw = localStorage.getItem(STORAGE_KEY_SCORES);
+              if (localTeamsRaw) {
+                const parsedTeams: Team[] = JSON.parse(localTeamsRaw);
+                if (Array.isArray(parsedTeams) && parsedTeams.length > 0) {
+                  const remoteIds = new Set((teamsRes.data || []).map((t: any) => t.id));
+                  const unuploadedTeams = parsedTeams.filter((t) => !remoteIds.has(t.id));
+                  if (unuploadedTeams.length > 0) {
+                    await supabase.from("teams").upsert(unuploadedTeams, { onConflict: "id" });
+                  }
+                }
+              }
+              if (localScoresRaw) {
+                const parsedScores: ScoreEvent[] = JSON.parse(localScoresRaw);
+                if (Array.isArray(parsedScores) && parsedScores.length > 0) {
+                  const remoteIds = new Set((scoresRes.data || []).map((s: any) => s.id));
+                  const unuploadedScores = parsedScores.filter((s) => !remoteIds.has(s.id));
+                  if (unuploadedScores.length > 0) {
+                    await supabase.from("score_events").upsert(unuploadedScores, { onConflict: "id" });
+                  }
+                }
+              }
+            } catch (err) {
+              console.warn("[Arena] Local data rescue upload notice:", err);
+            }
           } catch (err) {
             console.warn("Supabase fetch failed, continuing in local mode:", err);
           }
@@ -367,30 +502,30 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
           // Postgres CDC Table Listeners
           .on("postgres_changes", { event: "*", schema: "public", table: "score_events" }, async () => {
             const res = await supabase.from("score_events").select("*").order("created_at", { ascending: false });
-            if (res.data) setScoreEvents(res.data);
+            if (res.data && res.data.length > 0) setScoreEvents((prev) => mergeScoreEventsList(prev, res.data));
           })
           .on("postgres_changes", { event: "*", schema: "public", table: "wallet_transactions" }, async () => {
             const res = await supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false });
-            if (res.data) setWalletTransactions(res.data);
+            if (res.data && res.data.length > 0) setWalletTransactions((prev) => mergeWalletTransactionsList(prev, res.data));
           })
           .on("postgres_changes", { event: "*", schema: "public", table: "event_state" }, (payload) => {
-            if (payload.new) setEventState(payload.new as EventState);
+            if (payload.new) setEventState((prev) => ({ ...prev, ...(payload.new as EventState) }));
           })
           .on("postgres_changes", { event: "*", schema: "public", table: "teams" }, async () => {
             const res = await supabase.from("teams").select("*");
-            if (res.data) setTeams(res.data);
+            if (res.data && res.data.length > 0) setTeams((prev) => mergeTeamsList(prev, res.data));
           })
           .on("postgres_changes", { event: "*", schema: "public", table: "games" }, async () => {
             const res = await supabase.from("games").select("*");
-            if (res.data) setGames(res.data);
+            if (res.data && res.data.length > 0) setGames(res.data);
           })
           .on("postgres_changes", { event: "*", schema: "public", table: "game_participation" }, async () => {
             const res = await supabase.from("game_participation").select("*");
-            if (res.data) setGameParticipations(res.data);
+            if (res.data && res.data.length > 0) setGameParticipations((prev) => mergeParticipationsList(prev, res.data));
           })
           .on("postgres_changes", { event: "*", schema: "public", table: "auction_questions" }, async () => {
             const res = await supabase.from("auction_questions").select("*");
-            if (res.data) setAuctionQuestions(res.data);
+            if (res.data && res.data.length > 0) setAuctionQuestions(res.data);
           })
           .subscribe((status) => {
             if (status === "SUBSCRIBED") {
@@ -407,55 +542,51 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
 
     // -------------------------------------------------------------
     // REALTIME TRANSPORT 3: Vercel Serverless Live-Sync Engine (SSE + Poll)
+    // Always active as resilient fallback heartbeat across mobile connections
     // -------------------------------------------------------------
     let sseSource: EventSource | null = null;
     let pollInterval: any = null;
 
-    if (!isSupabaseConfigured() && !wsConnected) {
-      setRealtimeStatus("connected");
-      setRealtimeTransport("livesync");
-
-      try {
-        sseSource = new EventSource("/api/realtime/events");
-        sseSource.onmessage = (event) => {
-          try {
-            const parsed = JSON.parse(event.data);
-            handleIncomingMessage(parsed);
-          } catch {}
-        };
-      } catch (err) {
-        console.warn("SSE connection init error:", err);
-      }
-
-      // Delta sync polling every 2s for guaranteed consistency across mobile browsers
-      let lastServerVersion = 0;
-      const syncWithServer = async () => {
+    try {
+      sseSource = new EventSource("/api/realtime/events");
+      sseSource.onmessage = (event) => {
         try {
-          const res = await fetch(`/api/realtime/sync?v=${lastServerVersion}`, {
-            cache: "no-store",
-          });
-          if (res.ok) {
-            const json = await res.json();
-            if (!json.unchanged && json.version > lastServerVersion) {
-              lastServerVersion = json.version;
-              handleIncomingMessage({
-                type: "STATE_SYNC",
-                teams: json.teams,
-                games: json.games,
-                participations: json.participations,
-                transactions: json.transactions,
-                scores: json.scores,
-                auction: json.auction,
-                eventState: json.eventState,
-              });
-            }
-          }
+          const parsed = JSON.parse(event.data);
+          handleIncomingMessage(parsed);
         } catch {}
       };
-
-      syncWithServer();
-      pollInterval = setInterval(syncWithServer, 2000);
+    } catch (err) {
+      // SSE silent fallback
     }
+
+    // Delta sync polling every 3s for guaranteed consistency across mobile browsers
+    let lastServerVersion = 0;
+    const syncWithServer = async () => {
+      try {
+        const res = await fetch(`/api/realtime/sync?v=${lastServerVersion}`, {
+          cache: "no-store",
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (!json.unchanged && json.version > lastServerVersion) {
+            lastServerVersion = json.version;
+            handleIncomingMessage({
+              type: "STATE_SYNC",
+              teams: json.teams,
+              games: json.games,
+              participations: json.participations,
+              transactions: json.transactions,
+              scores: json.scores,
+              auction: json.auction,
+              eventState: json.eventState,
+            });
+          }
+        }
+      } catch {}
+    };
+
+    syncWithServer();
+    pollInterval = setInterval(syncWithServer, 3000);
 
     return () => {
       channel.close();
@@ -469,17 +600,17 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     };
   }, [handleIncomingMessage]);
 
-  // Save to localStorage when state changes
+  // Save to localStorage when state changes (guaranteed non-destructive)
   useEffect(() => {
     if (!isLoaded || typeof window === "undefined") return;
     try {
-      localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(teams));
-      localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(games));
-      localStorage.setItem(STORAGE_KEY_PARTICIPATION, JSON.stringify(gameParticipations));
-      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(walletTransactions));
-      localStorage.setItem(STORAGE_KEY_SCORES, JSON.stringify(scoreEvents));
-      localStorage.setItem(STORAGE_KEY_AUCTION, JSON.stringify(auctionQuestions));
-      localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(eventState));
+      if (teams && teams.length > 0) localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(teams));
+      if (games && games.length > 0) localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(games));
+      if (gameParticipations && gameParticipations.length > 0) localStorage.setItem(STORAGE_KEY_PARTICIPATION, JSON.stringify(gameParticipations));
+      if (walletTransactions && walletTransactions.length > 0) localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(walletTransactions));
+      if (scoreEvents && scoreEvents.length > 0) localStorage.setItem(STORAGE_KEY_SCORES, JSON.stringify(scoreEvents));
+      if (auctionQuestions && auctionQuestions.length > 0) localStorage.setItem(STORAGE_KEY_AUCTION, JSON.stringify(auctionQuestions));
+      if (eventState) localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(eventState));
     } catch (e) {
       console.warn("Failed to persist to localStorage:", e);
     }
@@ -712,7 +843,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     }
 
     setIsProcessing(true);
-    const id = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `team-${Date.now()}`;
+    const id = generateUUID();
     const musicIcons = ["🎸", "🥁", "🎹", "🎺", "🎷", "🪕", "🎻", "🎧", "🎤", "⚡"];
     const avatarList = ["sword", "heart", "gem", "shield", "sparkles", "trophy", "star", "flame"];
     
@@ -731,7 +862,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
 
     // Mandatory Initial Allocation Transaction (+1500 pts)
     const initialTx: WalletTransaction = {
-      id: `tx-init-${Date.now()}`,
+      id: generateUUID(),
       team_id: id,
       amount: 1500,
       transaction_type: "INITIAL_ALLOCATION",
@@ -746,6 +877,12 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
 
     setTeams(nextTeams);
     setWalletTransactions(nextTxs);
+
+    try {
+      localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(nextTeams));
+      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(nextTxs));
+    } catch {}
+
     broadcastSync({ teams: nextTeams, transactions: nextTxs });
     soundFx.playPowerUp();
 
@@ -753,8 +890,8 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
       const supabase = getSupabaseBrowserClient();
       if (supabase) {
         try {
-          await supabase.from("teams").insert(newTeam);
-          await supabase.from("wallet_transactions").insert(initialTx);
+          await supabase.from("teams").upsert(newTeam, { onConflict: "id" });
+          await supabase.from("wallet_transactions").upsert(initialTx, { onConflict: "id" });
         } catch (e) {
           console.warn("Supabase insert team failed:", e);
         }
@@ -845,7 +982,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
 
     // Wallet transaction record
     const entryTx: WalletTransaction = {
-      id: `tx-entry-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      id: generateUUID(),
       team_id: teamId,
       amount: -game.entry_cost,
       transaction_type: "GAME_ENTRY",
@@ -858,7 +995,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
 
     // Participation record
     const newParticipation: GameParticipation = {
-      id: existing ? existing.id : `part-${Date.now()}`,
+      id: existing ? existing.id : generateUUID(),
       team_id: teamId,
       game_id: gameId,
       status: "REGISTERED",
@@ -875,6 +1012,13 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     setTeams(nextTeams);
     setGameParticipations(nextParts);
     setWalletTransactions(nextTxs);
+
+    try {
+      localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(nextTeams));
+      localStorage.setItem(STORAGE_KEY_PARTICIPATION, JSON.stringify(nextParts));
+      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(nextTxs));
+    } catch {}
+
     broadcastSync({ teams: nextTeams, participations: nextParts, transactions: nextTxs });
     soundFx.playScoreAdded();
 
@@ -883,8 +1027,8 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
       if (supabase) {
         try {
           await supabase.from("teams").update({ current_wallet: updatedWallet }).eq("id", teamId);
-          await supabase.from("wallet_transactions").insert(entryTx);
-          await supabase.from("game_participation").upsert(newParticipation);
+          await supabase.from("wallet_transactions").upsert(entryTx, { onConflict: "id" });
+          await supabase.from("game_participation").upsert(newParticipation, { onConflict: "team_id,game_id" });
         } catch (e) {
           console.warn("Supabase register game failed:", e);
         }
@@ -955,7 +1099,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     if (!team) return { success: false, error: "Squad not found." };
 
     const scoreEvt: ScoreEvent = {
-      id: `score-${Date.now()}`,
+      id: generateUUID(),
       team_id: teamId,
       game_id: gameId,
       day: game?.day || 1,
@@ -975,7 +1119,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
       nextTeams = teams.map((t) => t.id === teamId ? { ...t, current_wallet: updatedWallet } : t);
 
       const rewardTx: WalletTransaction = {
-        id: `tx-reward-${Date.now()}`,
+        id: generateUUID(),
         team_id: teamId,
         amount: points,
         transaction_type: "GAME_REWARD",
@@ -993,7 +1137,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     // Mark participation as COMPLETED
     const existing = gameParticipations.find((p) => p.team_id === teamId && p.game_id === gameId);
     const updatedPart: GameParticipation = {
-      id: existing ? existing.id : `part-${Date.now()}`,
+      id: existing ? existing.id : generateUUID(),
       team_id: teamId,
       game_id: gameId,
       status: "COMPLETED",
@@ -1012,6 +1156,15 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     setLastBroadcastEvent(scoreEvt);
     soundFx.playScoreAdded();
 
+    // 1. Guaranteed immediate local persistence
+    try {
+      localStorage.setItem(STORAGE_KEY_SCORES, JSON.stringify(nextScores));
+      localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(nextTeams));
+      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(nextTxs));
+      localStorage.setItem(STORAGE_KEY_PARTICIPATION, JSON.stringify(nextParts));
+    } catch {}
+
+    // 2. Broadcast across tabs & devices
     broadcastSync({
       teams: nextTeams,
       scores: nextScores,
@@ -1019,12 +1172,22 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
       participations: nextParts,
     });
 
+    // 3. Dual-write to /api/scores for serverless persistence
+    try {
+      fetch("/api/scores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(scoreEvt),
+      }).catch(() => {});
+    } catch {}
+
+    // 4. Upsert to Supabase
     if (isSupabaseConfigured()) {
       const supabase = getSupabaseBrowserClient();
       if (supabase) {
         try {
-          await supabase.from("score_events").insert(scoreEvt);
-          await supabase.from("game_participation").upsert(updatedPart);
+          await supabase.from("score_events").upsert(scoreEvt, { onConflict: "id" });
+          await supabase.from("game_participation").upsert(updatedPart, { onConflict: "team_id,game_id" });
           if (eventState.reward_destination !== "score_only") {
             await supabase.from("teams").update({ current_wallet: team.current_wallet + points }).eq("id", teamId);
           }
@@ -1050,7 +1213,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     const nextTeams = teams.map((t) => t.id === teamId ? { ...t, current_wallet: updatedWallet } : t);
 
     const tx: WalletTransaction = {
-      id: `tx-adj-${Date.now()}`,
+      id: generateUUID(),
       team_id: teamId,
       amount,
       transaction_type: amount >= 0 ? "BONUS" : "PENALTY",
@@ -1063,6 +1226,12 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     const nextTxs = [tx, ...walletTransactions];
     setTeams(nextTeams);
     setWalletTransactions(nextTxs);
+
+    try {
+      localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(nextTeams));
+      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(nextTxs));
+    } catch {}
+
     broadcastSync({ teams: nextTeams, transactions: nextTxs });
     if (amount >= 0) soundFx.playPowerUp();
     else soundFx.playPenalty();
@@ -1071,7 +1240,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
       const supabase = getSupabaseBrowserClient();
       if (supabase) {
         await supabase.from("teams").update({ current_wallet: updatedWallet }).eq("id", teamId);
-        await supabase.from("wallet_transactions").insert(tx);
+        await supabase.from("wallet_transactions").upsert(tx, { onConflict: "id" });
       }
     }
 
@@ -1098,7 +1267,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     const nextTeams = teams.map((t) => t.id === team.id ? { ...t, current_wallet: updatedWallet } : t);
 
     const reversalTx: WalletTransaction = {
-      id: `tx-rev-${Date.now()}`,
+      id: generateUUID(),
       team_id: team.id,
       amount: reverseAmount,
       transaction_type: "REVERSAL",
@@ -1118,6 +1287,12 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
 
     setTeams(nextTeams);
     setWalletTransactions(nextTxs);
+
+    try {
+      localStorage.setItem(STORAGE_KEY_TEAMS, JSON.stringify(nextTeams));
+      localStorage.setItem(STORAGE_KEY_TRANSACTIONS, JSON.stringify(nextTxs));
+    } catch {}
+
     broadcastSync({ teams: nextTeams, transactions: nextTxs });
     soundFx.playUndo();
 
@@ -1125,7 +1300,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
       const supabase = getSupabaseBrowserClient();
       if (supabase) {
         await supabase.from("teams").update({ current_wallet: updatedWallet }).eq("id", team.id);
-        await supabase.from("wallet_transactions").insert(reversalTx);
+        await supabase.from("wallet_transactions").upsert(reversalTx, { onConflict: "id" });
         await supabase.from("wallet_transactions").update({ is_reversed: true }).eq("id", original.id);
       }
     }
@@ -1151,7 +1326,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
   }) => {
     setIsProcessing(true);
     const newEvt: ScoreEvent = {
-      id: `score-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      id: generateUUID(),
       team_id: teamId,
       game_id: gameId,
       day: day || eventState.current_day || 1,
@@ -1166,15 +1341,31 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     setScoreEvents(nextScores);
     setLastBroadcastEvent(newEvt);
 
+    try {
+      localStorage.setItem(STORAGE_KEY_SCORES, JSON.stringify(nextScores));
+    } catch {}
+
     if (points >= 0) soundFx.playScoreAdded();
     else soundFx.playPenalty();
 
     broadcastSync({ scores: nextScores });
 
+    try {
+      fetch("/api/scores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEvt),
+      }).catch(() => {});
+    } catch {}
+
     if (isSupabaseConfigured()) {
       const supabase = getSupabaseBrowserClient();
       if (supabase) {
-        await supabase.from("score_events").insert(newEvt);
+        try {
+          await supabase.from("score_events").upsert(newEvt, { onConflict: "id" });
+        } catch (e) {
+          console.warn("Supabase add score failed:", e);
+        }
       }
     }
 
@@ -1188,7 +1379,7 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     if (!target) return { success: false, error: "Score event not found." };
 
     const reversalEvt: ScoreEvent = {
-      id: `score-rev-${Date.now()}`,
+      id: generateUUID(),
       team_id: target.team_id,
       game_id: target.game_id,
       day: target.day,
@@ -1203,13 +1394,30 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     const nextScores = [reversalEvt, ...scoreEvents];
     setScoreEvents(nextScores);
     setLastBroadcastEvent(reversalEvt);
+
+    try {
+      localStorage.setItem(STORAGE_KEY_SCORES, JSON.stringify(nextScores));
+    } catch {}
+
     soundFx.playUndo();
     broadcastSync({ scores: nextScores });
+
+    try {
+      fetch("/api/scores", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reversalEvt),
+      }).catch(() => {});
+    } catch {}
 
     if (isSupabaseConfigured()) {
       const supabase = getSupabaseBrowserClient();
       if (supabase) {
-        await supabase.from("score_events").insert(reversalEvt);
+        try {
+          await supabase.from("score_events").upsert(reversalEvt, { onConflict: "id" });
+        } catch (e) {
+          console.warn("Supabase undo score failed:", e);
+        }
       }
     }
 
