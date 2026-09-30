@@ -47,8 +47,9 @@ import {
 import { useArena } from "@/lib/store/arena-context";
 import { Game, Team, ScoreEventType, GameParticipationStatus, AuctionQuestion, EventStatus } from "@/types/arena";
 import { soundFx } from "@/lib/audio/sound-fx";
-import { PixelBunting } from "@/components/PixelBunting";
 import { FestoonLights } from "@/components/FestoonLights";
+import { PixelBunting } from "@/components/PixelBunting";
+import { OFFICIAL_GAMES } from "@/lib/constants/games";
 import confetti from "canvas-confetti";
 
 export default function AdminFestivalControlBooth() {
@@ -158,8 +159,23 @@ export default function AdminFestivalControlBooth() {
     }
   }, [teams, selectedTeamId]);
 
+  const effectiveDay1Games = useMemo(() => {
+    return day1Games && day1Games.length > 0
+      ? day1Games
+      : OFFICIAL_GAMES.filter((g) => g.day === 1 && g.active).sort((a, b) => a.order_index - b.order_index);
+  }, [day1Games]);
+
+  const effectiveAllGames = useMemo(() => {
+    return games && games.length > 0
+      ? games.filter((g) => g.active)
+      : OFFICIAL_GAMES.filter((g) => g.active);
+  }, [games]);
+
   const currentSelectedTeam = teams.find((t) => t.id === selectedTeamId) || teams[0];
-  const currentSelectedGame = games.find((g) => g.id === selectedGameId) || day1Games[0];
+  const currentSelectedGame =
+    games.find((g) => g.id === selectedGameId) ||
+    OFFICIAL_GAMES.find((g) => g.id === selectedGameId) ||
+    effectiveDay1Games[0];
   const currentParticipation = gameParticipations.find(
     (p) => p.team_id === currentSelectedTeam?.id && p.game_id === currentSelectedGame?.id
   );
@@ -486,9 +502,7 @@ export default function AdminFestivalControlBooth() {
           </div>
 
           <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
-            {games
-              .filter((g) => g.active)
-              .map((g) => {
+            {effectiveAllGames.map((g) => {
                 const isSelected = g.id === selectedGameId;
                 return (
                   <button
@@ -595,7 +609,7 @@ export default function AdminFestivalControlBooth() {
                   onChange={(e) => setCurrentGame(e.target.value)}
                   className="bg-black text-fest-yellow font-anton text-sm uppercase px-3 py-1.5 rounded-xl border border-fest-yellow/40 focus:outline-none"
                 >
-                  {games.filter((g) => g.active).map((g) => (
+                  {effectiveAllGames.map((g) => (
                     <option key={g.id} value={g.id}>
                       {g.name} (Day {g.day})
                     </option>
@@ -669,7 +683,7 @@ export default function AdminFestivalControlBooth() {
                       SELECT DAY 1 ATTRACTION (5 GAMES):
                     </label>
                     <div className="grid grid-cols-1 gap-2">
-                      {day1Games.map((g) => {
+                      {effectiveDay1Games.map((g) => {
                         const selected = selectedGameId === g.id;
                         const part = gameParticipations.find(
                           (p) => p.team_id === currentSelectedTeam?.id && p.game_id === g.id

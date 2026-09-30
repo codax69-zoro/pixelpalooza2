@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { OFFICIAL_GAMES } from "@/lib/constants/games";
+import { SAMPLE_AUCTION_QUESTIONS } from "@/lib/constants/auction-questions";
 
 // Global in-memory cache preserved across warm serverless invocations
 interface ArenaGlobalState {
@@ -23,11 +25,11 @@ if (!globalThis.__pixelpalooza_state__) {
     version: 1,
     lastUpdated: new Date().toISOString(),
     teams: [],
-    games: [],
+    games: OFFICIAL_GAMES,
     participations: [],
     transactions: [],
     scores: [],
-    auction: [],
+    auction: SAMPLE_AUCTION_QUESTIONS,
     eventState: null,
     eventLog: [],
   };
@@ -53,11 +55,11 @@ export async function GET(req: NextRequest) {
       version: state.version,
       lastUpdated: state.lastUpdated,
       teams: state.teams,
-      games: state.games,
+      games: state.games && state.games.length > 0 ? state.games : OFFICIAL_GAMES,
       participations: state.participations,
       transactions: state.transactions,
       scores: state.scores,
-      auction: state.auction,
+      auction: state.auction && state.auction.length > 0 ? state.auction : SAMPLE_AUCTION_QUESTIONS,
       eventState: state.eventState,
     },
     {
@@ -76,11 +78,11 @@ export async function POST(req: NextRequest) {
     state.lastUpdated = new Date().toISOString();
 
     if (data.teams && Array.isArray(data.teams)) state.teams = data.teams;
-    if (data.games && Array.isArray(data.games)) state.games = data.games;
+    if (data.games && Array.isArray(data.games) && data.games.length > 0) state.games = data.games;
     if (data.participations && Array.isArray(data.participations)) state.participations = data.participations;
     if (data.transactions && Array.isArray(data.transactions)) state.transactions = data.transactions;
     if (data.scores && Array.isArray(data.scores)) state.scores = data.scores;
-    if (data.auction && Array.isArray(data.auction)) state.auction = data.auction;
+    if (data.auction && Array.isArray(data.auction) && data.auction.length > 0) state.auction = data.auction;
     if (data.eventState && typeof data.eventState === "object") state.eventState = data.eventState;
 
     if (data.type === "SCORE_ADDED" && data.event) {

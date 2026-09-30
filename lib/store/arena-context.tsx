@@ -150,11 +150,11 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
 
     if (data.type === "STATE_SYNC") {
       if (data.teams && Array.isArray(data.teams)) setTeams(data.teams);
-      if (data.games && Array.isArray(data.games)) setGames(data.games);
+      if (data.games && Array.isArray(data.games) && data.games.length > 0) setGames(data.games);
       if (data.participations && Array.isArray(data.participations)) setGameParticipations(data.participations);
       if (data.transactions && Array.isArray(data.transactions)) setWalletTransactions(data.transactions);
       if (data.scores && Array.isArray(data.scores)) setScoreEvents(data.scores);
-      if (data.auction && Array.isArray(data.auction)) setAuctionQuestions(data.auction);
+      if (data.auction && Array.isArray(data.auction) && data.auction.length > 0) setAuctionQuestions(data.auction);
       if (data.eventState && typeof data.eventState === "object") setEventState(data.eventState);
     } else if (data.type === "SCORE_ADDED") {
       const newEvt = data.event;
@@ -220,15 +220,23 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (storedGames) {
-        const parsed = JSON.parse(storedGames);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Merge to ensure all 5 Day-1 games and 1 Day-2 game exist
-          const merged = OFFICIAL_GAMES.map((official) => {
-            const existing = parsed.find((p: Game) => p.id === official.id || p.slug === official.slug);
-            return existing ? { ...official, ...existing } : official;
-          });
-          setGames(merged);
+        try {
+          const parsed = JSON.parse(storedGames);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            // Merge to ensure all 5 Day-1 games and 1 Day-2 game exist
+            const merged = OFFICIAL_GAMES.map((official) => {
+              const existing = parsed.find((p: Game) => p.id === official.id || p.slug === official.slug);
+              return existing ? { ...official, ...existing } : official;
+            });
+            setGames(merged);
+          } else {
+            setGames(OFFICIAL_GAMES);
+          }
+        } catch {
+          setGames(OFFICIAL_GAMES);
         }
+      } else {
+        setGames(OFFICIAL_GAMES);
       }
 
       if (storedParticipation) {
@@ -529,18 +537,26 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [broadcastChannel]);
 
-  // Derived filtered games
-  const activeGames = useMemo(() => games.filter((g) => g.active), [games]);
-  const day1Games = useMemo(() => games.filter((g) => g.day === 1 && g.active).sort((a, b) => a.order_index - b.order_index), [games]);
-  const day2Games = useMemo(() => games.filter((g) => g.day === 2 && g.active).sort((a, b) => a.order_index - b.order_index), [games]);
+  // Derived filtered games - guaranteed fallback to OFFICIAL_GAMES
+  const effectiveGames = useMemo(() => {
+    return games && games.length > 0 ? games : OFFICIAL_GAMES;
+  }, [games]);
+
+  const activeGames = useMemo(() => effectiveGames.filter((g) => g.active), [effectiveGames]);
+  const day1Games = useMemo(() => effectiveGames.filter((g) => g.day === 1 && g.active).sort((a, b) => a.order_index - b.order_index), [effectiveGames]);
+  const day2Games = useMemo(() => effectiveGames.filter((g) => g.day === 2 && g.active).sort((a, b) => a.order_index - b.order_index), [effectiveGames]);
   
   const activeGame = useMemo(() => {
-    return games.find((g) => g.id === eventState.current_game_id) || games[0] || null;
-  }, [games, eventState.current_game_id]);
+    return effectiveGames.find((g) => g.id === eventState.current_game_id) || effectiveGames[0] || null;
+  }, [effectiveGames, eventState.current_game_id]);
+
+  const effectiveAuctionQuestions = useMemo(() => {
+    return auctionQuestions && auctionQuestions.length > 0 ? auctionQuestions : SAMPLE_AUCTION_QUESTIONS;
+  }, [auctionQuestions]);
 
   const activeAuctionQuestion = useMemo(() => {
-    return auctionQuestions.find((q) => q.id === eventState.current_auction_question_id) || auctionQuestions[0] || null;
-  }, [auctionQuestions, eventState.current_auction_question_id]);
+    return effectiveAuctionQuestions.find((q) => q.id === eventState.current_auction_question_id) || effectiveAuctionQuestions[0] || null;
+  }, [effectiveAuctionQuestions, eventState.current_auction_question_id]);
 
   // Computed Standings (Day 1, Day 2, and Overall)
   const standings = useMemo(() => {
