@@ -16,13 +16,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "No POSTGRES_URL configured" }, { status: 500 });
   }
 
+  // Strip sslmode from query so ssl object options are respected by pg-connection-string
+  const cleanConnectionString = connectionString.replace(/[?&]sslmode=[^&]+/g, "");
+
   const client = new Client({
-    connectionString,
-    ssl: { rejectUnauthorized: false },
+    connectionString: cleanConnectionString,
+    ssl: {
+      rejectUnauthorized: false,
+    },
     connectionTimeoutMillis: 15000,
   });
 
   try {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     await client.connect();
 
     // 1. Extension
