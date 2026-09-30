@@ -63,25 +63,22 @@ export async function GET(req: NextRequest) {
         supabase.from("auction_questions").select("*").order("question_number", { ascending: true }),
       ]);
 
-      if (teamsRes.data && teamsRes.data.length > 0) {
+      if (teamsRes.data) {
         state.teams = teamsRes.data;
       }
       if (gamesRes.data && gamesRes.data.length > 0) {
         state.games = gamesRes.data;
       }
-      if (scoresRes.data && scoresRes.data.length > 0) {
-        // Merge with any in-memory scores that haven't synced yet
-        const existingIds = new Set(scoresRes.data.map((s: any) => s.id));
-        const unwritten = state.scores.filter((s: any) => !existingIds.has(s.id));
-        state.scores = [...unwritten, ...scoresRes.data];
+      if (scoresRes.data) {
+        state.scores = scoresRes.data;
       }
       if (stateRes.data) {
         state.eventState = stateRes.data;
       }
-      if (transRes.data && transRes.data.length > 0) {
+      if (transRes.data) {
         state.transactions = transRes.data;
       }
-      if (partRes.data && partRes.data.length > 0) {
+      if (partRes.data) {
         state.participations = partRes.data;
       }
       if (auctRes.data && auctRes.data.length > 0) {
