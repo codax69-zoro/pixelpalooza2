@@ -12,20 +12,21 @@ export async function GET(req: NextRequest) {
   }
 
   const connectionString = process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL;
-  if (!connectionString) {
-    return NextResponse.json({ error: "No POSTGRES_URL configured" }, { status: 500 });
-  }
-
-  // Strip sslmode from query so ssl object options are respected by pg-connection-string
-  const cleanConnectionString = connectionString.replace(/[?&]sslmode=[^&]+/g, "");
-
-  const client = new Client({
-    connectionString: cleanConnectionString,
-    ssl: {
-      rejectUnauthorized: false,
-    },
-    connectionTimeoutMillis: 15000,
-  });
+  const client = process.env.POSTGRES_HOST
+    ? new Client({
+        host: process.env.POSTGRES_HOST,
+        port: 5432,
+        database: process.env.POSTGRES_DATABASE || "postgres",
+        user: process.env.POSTGRES_USER || "postgres",
+        password: process.env.POSTGRES_PASSWORD,
+        ssl: { rejectUnauthorized: false },
+        connectionTimeoutMillis: 15000,
+      })
+    : new Client({
+        connectionString,
+        ssl: { rejectUnauthorized: false },
+        connectionTimeoutMillis: 15000,
+      });
 
   try {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
