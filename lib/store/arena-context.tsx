@@ -44,6 +44,8 @@ interface ArenaContextType {
   currentLeader: TeamStanding | null;
   activeGame: Game | null;
   realtimeStatus: "connected" | "reconnecting" | "local";
+  realtimeTransport: "websocket" | "supabase" | "livesync" | "local";
+  activeDeviceCount: number;
   isProcessing: boolean;
   lastBroadcastEvent: ScoreEvent | null;
   // Team Management
@@ -127,32 +129,36 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
   });
 
   const [realtimeStatus, setRealtimeStatus] = useState<"connected" | "reconnecting" | "local">("local");
+  const [realtimeTransport, setRealtimeTransport] = useState<"websocket" | "supabase" | "livesync" | "local">("local");
+  const [activeDeviceCount, setActiveDeviceCount] = useState<number>(1);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [lastBroadcastEvent, setLastBroadcastEvent] = useState<ScoreEvent | null>(null);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [broadcastChannel, setBroadcastChannel] = useState<BroadcastChannel | null>(null);
 
-  // Initialize data and load from localStorage or Supabase
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  const wsRef = React.useRef<WebSocket | null>(null);
+  const supabaseChannelRef = React.useRef<any>(null);
 
-    const channel = new BroadcastChannel("gdgoc_arena_bus_v3");
-    setBroadcastChannel(channel);
+  // Unified message handler across WebSockets, Supabase Broadcast, and SSE
+  const handleIncomingMessage = useCallback((data: any) => {
+    if (!data) return;
 
-    channel.onmessage = (msg) => {
-      const data = msg.data;
-      if (!data) return;
+    if (data.type === "CLIENT_COUNT" && typeof data.count === "number") {
+      setActiveDeviceCount(data.count);
+      return;
+    }
 
-      if (data.type === "STATE_SYNC") {
-        if (data.teams) setTeams(data.teams);
-        if (data.games) setGames(data.games);
-        if (data.participations) setGameParticipations(data.participations);
-        if (data.transactions) setWalletTransactions(data.transactions);
-        if (data.scores) setScoreEvents(data.scores);
-        if (data.auction) setAuctionQuestions(data.auction);
-        if (data.eventState) setEventState(data.eventState);
-      } else if (data.type === "SCORE_ADDED") {
-        const newEvt = data.event;
+    if (data.type === "STATE_SYNC") {
+      if (data.teams && Array.isArray(data.teams)) setTeams(data.teams);
+      if (data.games && Array.isArray(data.games)) setGames(data.games);
+      if (data.participations && Array.isArray(data.participations)) setGameParticipations(data.participations);
+      if (data.transactions && Array.isArray(data.transactions)) setWalletTransactions(data.transactions);
+      if (data.scores && Array.isArray(data.scores)) setScoreEvents(data.scores);
+      if (data.auction && Array.isArray(data.auction)) setAuctionQuestions(data.auction);
+      if (data.eventState && typeof data.eventState === "object") setEventState(data.eventState);
+    } else if (data.type === "SCORE_ADDED") {
+      const newEvt = data.event;
+      if (newEvt) {
         setScoreEvents((prev) => {
           if (prev.some((e) => e.id === newEvt.id)) return prev;
           return [newEvt, ...prev];
@@ -160,13 +166,25 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
         setLastBroadcastEvent(newEvt);
         if (newEvt.points >= 0) soundFx.playScoreAdded();
         else soundFx.playPenalty();
-      } else if (data.type === "WALLET_UPDATED") {
-        if (data.teams) setTeams(data.teams);
-        if (data.transactions) setWalletTransactions(data.transactions);
-        soundFx.playPowerUp();
-      } else if (data.type === "EVENT_STATE_UPDATE") {
-        setEventState(data.state);
       }
+    } else if (data.type === "WALLET_UPDATED") {
+      if (data.teams) setTeams(data.teams);
+      if (data.transactions) setWalletTransactions(data.transactions);
+      soundFx.playPowerUp();
+    } else if (data.type === "EVENT_STATE_UPDATE") {
+      if (data.state) setEventState(data.state);
+    }
+  }, []);
+
+  // Initialize data and load from localStorage, WebSocket, Supabase, or Vercel Live-Sync
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const channel = new BroadcastChannel("gdgoc_arena_bus_v3");
+    setBroadcastChannel(channel);
+
+    channel.onmessage = (msg) => {
+      handleIncomingMessage(msg.data);
     };
 
     // Load from localStorage
@@ -245,7 +263,60 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
 
     setIsLoaded(true);
 
-    // If Supabase is configured, initialize Supabase fetch & subscription
+    // -------------------------------------------------------------
+    // REALTIME TRANSPORT 1: Direct Dedicated WebSocket Server
+    // -------------------------------------------------------------
+    let ws: WebSocket | null = null;
+    let wsConnected = false;
+
+    const configuredWsUrl = process.env.NEXT_PUBLIC_WS_URL;
+    const defaultWsUrl =
+      typeof window !== "undefined" &&
+      window.location.protocol === "http:" &&
+      (window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1" ||
+        window.location.hostname.startsWith("192.168."))
+        ? `ws://${window.location.hostname}:3001`
+        : null;
+
+    const targetWsUrl = configuredWsUrl || defaultWsUrl;
+
+    if (targetWsUrl) {
+      try {
+        ws = new WebSocket(targetWsUrl);
+        wsRef.current = ws;
+
+        ws.onopen = () => {
+          wsConnected = true;
+          setRealtimeStatus("connected");
+          setRealtimeTransport("websocket");
+          console.log("[Arena] Connected to Dedicated WebSocket Server at", targetWsUrl);
+        };
+
+        ws.onmessage = (evt) => {
+          try {
+            const parsed = JSON.parse(evt.data);
+            handleIncomingMessage(parsed);
+          } catch {}
+        };
+
+        ws.onerror = () => {
+          // Fallback silently to Supabase or Live-Sync
+        };
+
+        ws.onclose = () => {
+          wsRef.current = null;
+          wsConnected = false;
+        };
+      } catch (e) {
+        console.warn("[Arena] Could not connect to direct WebSocket:", e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // REALTIME TRANSPORT 2: Supabase Realtime (WebSockets + Broadcast)
+    // -------------------------------------------------------------
+    let supabaseChannel: any = null;
     if (isSupabaseConfigured()) {
       const supabase = getSupabaseBrowserClient();
       if (supabase) {
@@ -276,8 +347,16 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
 
         fetchInitialData();
 
-        const rtChannel = supabase
+        supabaseChannel = supabase
           .channel("arena-realtime-v3")
+          // Instant Broadcast Channel over WebSockets (<30ms)
+          .on("broadcast", { event: "ARENA_SYNC" }, ({ payload }: any) => {
+            handleIncomingMessage({ type: "STATE_SYNC", ...payload });
+          })
+          .on("broadcast", { event: "SCORE_ADDED" }, ({ payload }: any) => {
+            handleIncomingMessage({ type: "SCORE_ADDED", ...payload });
+          })
+          // Postgres CDC Table Listeners
           .on("postgres_changes", { event: "*", schema: "public", table: "score_events" }, async () => {
             const res = await supabase.from("score_events").select("*").order("created_at", { ascending: false });
             if (res.data) setScoreEvents(res.data);
@@ -297,6 +376,10 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
             const res = await supabase.from("games").select("*");
             if (res.data) setGames(res.data);
           })
+          .on("postgres_changes", { event: "*", schema: "public", table: "game_participation" }, async () => {
+            const res = await supabase.from("game_participation").select("*");
+            if (res.data) setGameParticipations(res.data);
+          })
           .on("postgres_changes", { event: "*", schema: "public", table: "auction_questions" }, async () => {
             const res = await supabase.from("auction_questions").select("*");
             if (res.data) setAuctionQuestions(res.data);
@@ -304,22 +387,79 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
           .subscribe((status) => {
             if (status === "SUBSCRIBED") {
               setRealtimeStatus("connected");
+              setRealtimeTransport("supabase");
             } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-              setRealtimeStatus("local");
+              if (!wsConnected) setRealtimeStatus("local");
             }
           });
 
-        return () => {
-          supabase.removeChannel(rtChannel);
-          channel.close();
-        };
+        supabaseChannelRef.current = supabaseChannel;
       }
+    }
+
+    // -------------------------------------------------------------
+    // REALTIME TRANSPORT 3: Vercel Serverless Live-Sync Engine (SSE + Poll)
+    // -------------------------------------------------------------
+    let sseSource: EventSource | null = null;
+    let pollInterval: any = null;
+
+    if (!isSupabaseConfigured() && !wsConnected) {
+      setRealtimeStatus("connected");
+      setRealtimeTransport("livesync");
+
+      try {
+        sseSource = new EventSource("/api/realtime/events");
+        sseSource.onmessage = (event) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            handleIncomingMessage(parsed);
+          } catch {}
+        };
+      } catch (err) {
+        console.warn("SSE connection init error:", err);
+      }
+
+      // Delta sync polling every 2s for guaranteed consistency across mobile browsers
+      let lastServerVersion = 0;
+      const syncWithServer = async () => {
+        try {
+          const res = await fetch(`/api/realtime/sync?v=${lastServerVersion}`, {
+            cache: "no-store",
+          });
+          if (res.ok) {
+            const json = await res.json();
+            if (!json.unchanged && json.version > lastServerVersion) {
+              lastServerVersion = json.version;
+              handleIncomingMessage({
+                type: "STATE_SYNC",
+                teams: json.teams,
+                games: json.games,
+                participations: json.participations,
+                transactions: json.transactions,
+                scores: json.scores,
+                auction: json.auction,
+                eventState: json.eventState,
+              });
+            }
+          }
+        } catch {}
+      };
+
+      syncWithServer();
+      pollInterval = setInterval(syncWithServer, 2000);
     }
 
     return () => {
       channel.close();
+      if (ws) ws.close();
+      if (supabaseChannel && isSupabaseConfigured()) {
+        const supabase = getSupabaseBrowserClient();
+        if (supabase) supabase.removeChannel(supabaseChannel);
+      }
+      if (sseSource) sseSource.close();
+      if (pollInterval) clearInterval(pollInterval);
     };
-  }, []);
+  }, [handleIncomingMessage]);
 
   // Save to localStorage when state changes
   useEffect(() => {
@@ -337,14 +477,56 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
     }
   }, [teams, games, gameParticipations, walletTransactions, scoreEvents, auctionQuestions, eventState, isLoaded]);
 
-  // Broadcast state changes helper
+  // Broadcast state changes helper across all connected devices
   const broadcastSync = useCallback((patch: Record<string, any>) => {
+    // 1. Same-device inter-tab sync
     if (broadcastChannel) {
-      broadcastChannel.postMessage({
-        type: "STATE_SYNC",
-        ...patch,
-      });
+      try {
+        broadcastChannel.postMessage({
+          type: "STATE_SYNC",
+          ...patch,
+        });
+      } catch {}
     }
+
+    // 2. Direct WebSocket broadcast (if connected)
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      try {
+        wsRef.current.send(
+          JSON.stringify({
+            type: "STATE_SYNC",
+            ...patch,
+          })
+        );
+      } catch (err) {
+        console.warn("[WS] Send error:", err);
+      }
+    }
+
+    // 3. Supabase Realtime Broadcast (if channel active)
+    if (supabaseChannelRef.current) {
+      try {
+        supabaseChannelRef.current.send({
+          type: "broadcast",
+          event: "ARENA_SYNC",
+          payload: patch,
+        });
+      } catch (err) {
+        console.warn("[Supabase] Broadcast send error:", err);
+      }
+    }
+
+    // 4. Serverless Live-Sync API route (syncs with Vercel / server)
+    try {
+      fetch("/api/realtime/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "STATE_SYNC",
+          ...patch,
+        }),
+      }).catch(() => {});
+    } catch {}
   }, [broadcastChannel]);
 
   // Derived filtered games
@@ -1508,6 +1690,8 @@ export function ArenaProvider({ children }: { children: React.ReactNode }) {
         currentLeader,
         activeGame,
         realtimeStatus,
+        realtimeTransport,
+        activeDeviceCount,
         isProcessing,
         lastBroadcastEvent,
         createTeam,

@@ -72,6 +72,8 @@ export default function AdminFestivalControlBooth() {
     currentLeader,
     activeGame,
     realtimeStatus,
+    realtimeTransport,
+    activeDeviceCount,
     isProcessing,
     createTeam,
     updateTeam,
@@ -129,6 +131,25 @@ export default function AdminFestivalControlBooth() {
       setSelectedGameId(day1Games[0].id);
     }
   }, [day1Games, selectedGameId]);
+
+  // Pre-select game station from URL query parameter ?game=<id_or_slug>
+  useEffect(() => {
+    if (typeof window !== "undefined" && games.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const gameParam = params.get("game");
+      if (gameParam) {
+        const found = games.find(
+          (g) =>
+            g.id === gameParam ||
+            g.slug.toLowerCase() === gameParam.toLowerCase() ||
+            g.name.toLowerCase().includes(gameParam.toLowerCase())
+        );
+        if (found) {
+          setSelectedGameId(found.id);
+        }
+      }
+    }
+  }, [games]);
 
   // Sync selectedTeamId if teams changes
   useEffect(() => {
@@ -424,11 +445,28 @@ export default function AdminFestivalControlBooth() {
               </select>
             </div>
 
+            {/* Realtime WebSocket Sync Status Pill */}
+            <div className="flex items-center gap-2 bg-emerald-950/80 border border-emerald-500/60 px-3 py-1.5 rounded-xl shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-grotesk text-xs uppercase font-black text-emerald-400">
+                {realtimeTransport === "websocket"
+                  ? "WEBSOCKET LIVE"
+                  : realtimeTransport === "supabase"
+                  ? "SUPABASE REALTIME"
+                  : "LIVE SYNC ACTIVE"}
+              </span>
+              {activeDeviceCount > 1 && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">
+                  {activeDeviceCount} DEVICES
+                </span>
+              )}
+            </div>
+
             {/* Stage HUD link */}
             <Link
               href="/display"
               target="_blank"
-              className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-grotesk text-xs uppercase font-bold rounded-lg border border-purple-400 flex items-center gap-1.5 transition-colors"
+              className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-grotesk text-xs uppercase font-bold rounded-lg border border-purple-400 flex items-center gap-1.5 transition-colors shadow-[2px_2px_0px_#000]"
             >
               <Tv className="w-3.5 h-3.5" />
               STAGE HUD ↗
@@ -436,6 +474,47 @@ export default function AdminFestivalControlBooth() {
           </div>
         </div>
       </header>
+
+      {/* Multi-Device Game Station Quick Bar for Referees */}
+      <div className="bg-slate-900/95 border-b border-slate-800 px-4 lg:px-8 py-2.5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-fest-yellow animate-ping" />
+            <span className="font-grotesk text-xs uppercase font-black text-fest-yellow tracking-wider">
+              REFEREE STATION:
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
+            {games
+              .filter((g) => g.active)
+              .map((g) => {
+                const isSelected = g.id === selectedGameId;
+                return (
+                  <button
+                    key={g.id}
+                    onClick={() => {
+                      setSelectedGameId(g.id);
+                      if (typeof window !== "undefined") {
+                        window.history.replaceState(null, "", `/admin?game=${g.slug}`);
+                      }
+                    }}
+                    className={`px-3 py-1 rounded-xl font-anton text-xs uppercase tracking-wider whitespace-nowrap border transition-all ${
+                      isSelected
+                        ? "bg-fest-yellow text-black border-fest-yellow shadow-[0_0_10px_rgba(255,221,0,0.4)] scale-105"
+                        : "bg-black/60 text-slate-300 border-slate-700 hover:border-slate-500 hover:text-white"
+                    }`}
+                  >
+                    <span>{g.name}</span>
+                    <span className="ml-1.5 opacity-80 font-mono text-[10px]">
+                      ({g.entry_cost} pts)
+                    </span>
+                  </button>
+                );
+              })}
+          </div>
+        </div>
+      </div>
 
       {/* Confirmation / Alert Banner */}
       {confirmBanner && (

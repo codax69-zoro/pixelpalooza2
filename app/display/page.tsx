@@ -32,7 +32,9 @@ export default function ProjectorDisplayPage() {
     teams, 
     games, 
     activeAuctionQuestion,
-    realtimeStatus 
+    realtimeStatus,
+    realtimeTransport,
+    activeDeviceCount
   } = useArena();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [muted, setMuted] = useState(soundFx.getIsMuted());
@@ -96,7 +98,14 @@ export default function ProjectorDisplayPage() {
               </span>
               <div className="flex items-center gap-1.5 bg-emerald-950/80 border border-emerald-500/50 px-3 py-1 rounded-full text-xs font-grotesk font-black text-emerald-400">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>STAGE HUD • DAY {eventState.current_day}</span>
+                <span>
+                  STAGE HUD • DAY {eventState.current_day} •{" "}
+                  {realtimeTransport === "websocket"
+                    ? "WEBSOCKET LIVE"
+                    : realtimeTransport === "supabase"
+                    ? "SUPABASE LIVE"
+                    : "CLOUD SYNC"}
+                </span>
               </div>
             </div>
             <div className="flex items-center gap-2 text-[11px] font-grotesk font-bold uppercase tracking-wider text-slate-400 mt-0.5">

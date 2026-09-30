@@ -170,7 +170,7 @@ CREATE TABLE event_state (
     CONSTRAINT single_row CHECK (id = 1)
 );
 
--- 12. Enable Row Level Security (RLS)
+-- 12. Enable Row Level Security (RLS) & Full Realtime Replication
 ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE games ENABLE ROW LEVEL SECURITY;
 ALTER TABLE game_participation ENABLE ROW LEVEL SECURITY;
@@ -180,6 +180,15 @@ ALTER TABLE auction_bids ENABLE ROW LEVEL SECURITY;
 ALTER TABLE auction_results ENABLE ROW LEVEL SECURITY;
 ALTER TABLE score_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE event_state ENABLE ROW LEVEL SECURITY;
+
+-- Enable REPLICA IDENTITY FULL for robust CDC replication to WebSockets
+ALTER TABLE teams REPLICA IDENTITY FULL;
+ALTER TABLE games REPLICA IDENTITY FULL;
+ALTER TABLE game_participation REPLICA IDENTITY FULL;
+ALTER TABLE wallet_transactions REPLICA IDENTITY FULL;
+ALTER TABLE score_events REPLICA IDENTITY FULL;
+ALTER TABLE auction_questions REPLICA IDENTITY FULL;
+ALTER TABLE event_state REPLICA IDENTITY FULL;
 
 -- Public can READ all tables
 CREATE POLICY "Public teams can be read" ON teams FOR SELECT USING (true);
@@ -192,18 +201,18 @@ CREATE POLICY "Public auction_results can be read" ON auction_results FOR SELECT
 CREATE POLICY "Public score_events can be read" ON score_events FOR SELECT USING (true);
 CREATE POLICY "Public event_state can be read" ON event_state FOR SELECT USING (true);
 
--- Authenticated admins or service roles can mutate
-CREATE POLICY "Admin can modify teams" ON teams FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Admin can modify games" ON games FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Admin can modify game_participation" ON game_participation FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Admin can modify wallet_transactions" ON wallet_transactions FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Admin can modify auction_questions" ON auction_questions FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Admin can modify auction_bids" ON auction_bids FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Admin can modify auction_results" ON auction_results FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Admin can modify score_events" ON score_events FOR ALL USING (auth.role() = 'authenticated');
-CREATE POLICY "Admin can modify event_state" ON event_state FOR ALL USING (auth.role() = 'authenticated');
+-- Allow festival operations by clients with anon key
+CREATE POLICY "Allow operations on teams" ON teams FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow operations on games" ON games FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow operations on game_participation" ON game_participation FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow operations on wallet_transactions" ON wallet_transactions FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow operations on auction_questions" ON auction_questions FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow operations on auction_bids" ON auction_bids FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow operations on auction_results" ON auction_results FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow operations on score_events" ON score_events FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow operations on event_state" ON event_state FOR ALL USING (true) WITH CHECK (true);
 
--- 13. Realtime Publication
+-- 13. Realtime Publication for WebSockets
 DO $$
 BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE score_events;
@@ -216,3 +225,4 @@ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN NULL;
 END $$;
+

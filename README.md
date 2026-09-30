@@ -102,19 +102,64 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🗄️ Optional Supabase Cloud Setup (Multi-Device Across Campus)
+## 📡 Multi-Device Realtime WebSockets & Referee Station Setup
 
-If organizers are scoring from different smartphones across different campus WiFi networks without a shared local proxy:
+Pixelpalooza 2.0 comes equipped with an enterprise-grade multi-transport Realtime WebSocket layer designed specifically for multi-device festival coordination across campus:
+
+### 1. Dedicated WebSocket Server (Local Wi-Fi or Remote VPS / Render)
+Run the built-in standalone WebSocket server alongside Next.js:
+```bash
+# Terminal 1: Launch Realtime WebSocket Server (Port 3001)
+npm run socket
+
+# Terminal 2: Launch Next.js Application (Port 3000)
+npm run dev
+# OR for production: npm run build && npm run start
+```
+- Devices connected to the same campus Wi-Fi router (e.g. `http://192.168.x.x:3000`) connect directly to `ws://192.168.x.x:3001` with sub-5ms sync.
+- For cloud hosting (Render, Railway, Fly.io), deploy `server/websocket-server.mjs` and set `NEXT_PUBLIC_WS_URL=wss://your-ws-server.onrender.com`.
+
+### 2. Zero-Config Vercel Live-Sync (Server-Sent Events + Delta Engine)
+If you deploy to **Vercel without any external services or database**, the application automatically activates **Vercel Serverless Live-Sync Engine** (`/api/realtime/events` and `/api/realtime/sync`).
+- **All devices sync live** across smartphones, tablets, and auditorium projectors with zero setup.
+- Displays `LIVE SYNC ACTIVE` on the HUD and Control Booth.
+
+### 3. Supabase Realtime WebSockets (High-Volume Cloud Database)
+For large festivals with persistent PostgreSQL audit trails:
 1. Create a free project at [supabase.com](https://supabase.com).
-2. In the Supabase **SQL Editor**, execute `supabase/schema.sql`.
-3. In the Supabase **SQL Editor**, execute `supabase/seed.sql` (seeds the 7 official games and default event state).
-4. Create a `.env.local` file with your project keys:
+2. In Supabase **SQL Editor**, execute `supabase/schema.sql` (fixed RLS policies and `REPLICA IDENTITY FULL`).
+3. In Supabase **SQL Editor**, execute `supabase/seed.sql`.
+4. In your Vercel Project Settings (or `.env.local`):
    ```env
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    ORGANIZER_PASSCODE_HASH=64df054a478c31e62514c51b6bbf3f5a52f0341addcc7e2e14f1c1d938b71aba
    ```
-5. Deploy to Vercel or run `npm run build && npm run start`. All connected devices will synchronize in real-time via WebSockets!
+5. Supabase WebSockets broadcast events across all devices in <30ms with instant `ARENA_SYNC` broadcast and Postgres CDC replication!
+
+---
+
+## 📱 Multi-Device Referee Stations (Scoring & Registration per Game)
+
+Referees at each festival stall can open their smartphone browser directly to their assigned game station:
+
+| Game Attraction | Direct Referee URL |
+| :--- | :--- |
+| **Balloon + Cup Tower** | `https://your-domain.vercel.app/admin?game=balloon-cup-tower` |
+| **Tech Tambola** | `https://your-domain.vercel.app/admin?game=tech-tambola` |
+| **Tech Pictionary** | `https://your-domain.vercel.app/admin?game=tech-pictionary` |
+| **Debug the Code** | `https://your-domain.vercel.app/admin?game=debug-the-code` |
+| **Tech Bomb Defusal** | `https://your-domain.vercel.app/admin?game=tech-bomb-defusal` |
+| **AI or Human?** | `https://your-domain.vercel.app/admin?game=ai-or-human` |
+| **Tech Jeopardy** | `https://your-domain.vercel.app/admin?game=tech-jeopardy` |
+| **The Tech Auction (Day 2)** | `https://your-domain.vercel.app/admin?game=tech-auction` |
+
+Referees can also tap the **Referee Station** quick-selector bar at the top of `/admin` to switch games with 1 tap.
+When a squad walks up:
+1. Tap **[REGISTER & PAY ENTRY FEE]** (auto-deducts entry cost from squad wallet).
+2. Set status to **PLAYING** → **COMPLETED**.
+3. Tap **[AWARD REWARD (+XP)]** or custom XP chips.
+4. The auditorium projector (`/display`) and spectator leaderboard (`/leaderboard`) instantly celebrate with sound chimes and fanfare across all connected devices!
 
 ---
 

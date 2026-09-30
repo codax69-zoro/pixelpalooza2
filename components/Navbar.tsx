@@ -18,7 +18,7 @@ import { soundFx } from "@/lib/audio/sound-fx";
 
 export function Navbar() {
   const pathname = usePathname();
-  const { eventState, activeGame, teams, realtimeStatus } = useArena();
+  const { eventState, activeGame, teams, realtimeStatus, realtimeTransport } = useArena();
   const [muted, setMuted] = useState(soundFx.getIsMuted());
 
   const toggleSound = () => {
@@ -83,6 +83,18 @@ export function Navbar() {
           {/* Day Badge */}
           <div className="hidden sm:flex items-center gap-1 px-2.5 py-1 bg-slate-900 border border-slate-700 rounded-lg text-xs font-anton text-fest-yellow uppercase">
             <span>DAY {eventState.current_day}</span>
+          </div>
+
+          {/* Realtime WebSocket Sync Pill */}
+          <div className="hidden sm:flex items-center gap-1.5 bg-emerald-950/70 border border-emerald-500/40 px-2 py-1 rounded-lg text-[10px] font-grotesk font-black text-emerald-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>
+              {realtimeTransport === "websocket"
+                ? "WS LIVE"
+                : realtimeTransport === "supabase"
+                ? "REALTIME"
+                : "CLOUD SYNC"}
+            </span>
           </div>
 
           {/* Admin Control Booth Button */}
