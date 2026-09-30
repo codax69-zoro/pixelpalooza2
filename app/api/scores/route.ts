@@ -12,7 +12,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from("score_events")
-    .select("*, teams(name), games(name)")
+    .select("*")
     .order("created_at", { ascending: false });
 
   if (error) {
